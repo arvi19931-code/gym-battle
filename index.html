@@ -40,22 +40,8 @@
         .profile-name { font-size: 16px; font-weight: bold; }
         .profile-status { font-size: 12px; color: #8b949e; }
         .vs-badge { background: #f0883e; padding: 4px 8px; border-radius: 20px; font-weight: bold; font-size: 12px; }
-        .unlocked-badge {
-            background: #238636;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            margin-left: 6px;
-        }
-        .admin-badge {
-            background: #9e6a03;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            margin-left: 6px;
-        }
+        .active-badge { background: #238636; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 6px; }
+        .admin-badge { background: #9e6a03; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 6px; }
         .tabs {
             display: flex;
             gap: 4px;
@@ -121,7 +107,6 @@
             cursor: pointer;
         }
         .who-btn.active { border-color: #238636; background: #1a3322; }
-        .who-btn.unlocked { border-color: #f0883e; }
         .pin-dialog {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -152,32 +137,9 @@
             margin: 16px 0;
         }
         .pin-error { color: #f85149; margin: 8px 0; font-size: 14px; }
-        .logout-btn {
-            background: transparent;
-            border: 1px solid #f85149;
-            color: #f85149;
-            padding: 4px 8px;
-            font-size: 11px;
-        }
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-            margin-bottom: 16px;
-        }
-        .calendar-day-header {
-            text-align: center;
-            font-weight: bold;
-            color: #8b949e;
-            padding: 8px 0;
-            font-size: 12px;
-        }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 16px; }
+        .calendar-day-header { text-align: center; font-weight: bold; color: #8b949e; padding: 8px 0; font-size: 12px; }
         .calendar-day {
             background: #161b22;
             border-radius: 8px;
@@ -199,29 +161,10 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .calendar-legend {
-            display: flex;
-            gap: 12px;
-            margin: 16px 0;
-            flex-wrap: wrap;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-        }
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-        }
-        .workout-editor {
-            background: #161b22;
-            border-radius: 16px;
-            padding: 16px;
-            margin-top: 20px;
-        }
+        .calendar-legend { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+        .legend-color { width: 16px; height: 16px; border-radius: 4px; }
+        .workout-editor { background: #161b22; border-radius: 16px; padding: 16px; margin-top: 20px; }
         .workout-item {
             background: #0d1117;
             padding: 12px;
@@ -231,16 +174,57 @@
             justify-content: space-between;
             align-items: center;
         }
-        .workout-type {
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-        }
+        .workout-type { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
         .type-spina { background: #238636; }
         .type-plechi { background: #9e6a03; }
         .type-grud { background: #da3633; }
-        .type-other { background: #6e7681; }
+        
+        .history-item {
+            background: #161b22;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .history-date { font-weight: bold; }
+        .history-player { color: #8b949e; font-size: 14px; }
+        .history-exercise {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 8px;
+        }
+        .history-ex-name { font-weight: bold; margin-bottom: 6px; color: #f0883e; }
+        .history-sets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .history-set {
+            background: #21262d;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        .expand-btn {
+            background: transparent;
+            color: #8b949e;
+            padding: 4px 8px;
+            font-size: 12px;
+            border: 1px solid #30363d;
+        }
+        .back-btn {
+            background: transparent;
+            border: 1px solid #f0883e;
+            color: #f0883e;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 <body>
@@ -268,6 +252,8 @@
     let unlockedPlayer = null;
     let currentTab = 'training';
     let calendarMonth = new Date();
+    let expandedHistory = {};
+    let viewingPartnerHistory = false; // Режим просмотра истории соперника
     
     const DAY_CONFIG = [
         { groups: ['Спина', 'Трицепс'], name: 'СПИНА + ТРИЦЕПС', type: 'spina' },
@@ -393,6 +379,19 @@
 
     window.logout = () => {
         unlockedPlayer = null;
+        viewingPartnerHistory = false;
+        render();
+    };
+    
+    window.viewPartnerHistory = () => {
+        viewingPartnerHistory = true;
+        currentTab = 'history';
+        render();
+    };
+    
+    window.backFromHistory = () => {
+        viewingPartnerHistory = false;
+        currentTab = 'training';
         render();
     };
 
@@ -402,12 +401,22 @@
             return;
         }
         
+        const groups = DAY_CONFIG[state.currentDayIndex].groups;
+        groups.forEach(group => {
+            const exs = state.currentExercises.filter(e => e.group === group);
+            state.templates[group] = exs.map(e => ({
+                name: e.name,
+                sets: e.sets.map(s => ({ weight: s.weight, reps: s.reps }))
+            }));
+        });
+        
+        let progress = 0;
         if (isDone) {
+            progress = 2.5;
             state.bank += 100;
             if (state.currentPlayer === 'me') state.profile.progress += 2.5;
             else state.partner.progress += 2.5;
             
-            const groups = DAY_CONFIG[state.currentDayIndex].groups;
             groups.forEach(group => {
                 const exs = state.currentExercises.filter(e => e.group === group);
                 state.templates[group] = exs.map(e => ({
@@ -422,11 +431,14 @@
         state.history.push({
             date: state.selectedDate,
             dayIndex: state.currentDayIndex,
+            dayName: DAY_CONFIG[state.currentDayIndex].name,
             player: state.currentPlayer,
-            completed: isDone
+            playerName: state.currentPlayer === 'me' ? state.profile.name : state.partner.name,
+            completed: isDone,
+            progress: progress,
+            exercises: JSON.parse(JSON.stringify(state.currentExercises))
         });
         
-        // Переключаем на следующий день по циклу
         state.currentDayIndex = (state.currentDayIndex + 1) % 3;
         state.selectedDate = new Date().toISOString().split('T')[0];
         
@@ -468,36 +480,39 @@
                 <div class="profile-info">
                     <div class="profile-name">
                         ${state.profile.name}
-                        ${unlockedPlayer === 'me' ? '<span class="unlocked-badge">✓</span>' : ''}
+                        ${unlockedPlayer === 'me' ? '<span class="active-badge">✓</span>' : ''}
                         ${state.profile.isAdmin ? '<span class="admin-badge">👑</span>' : ''}
                     </div>
                     <div class="profile-status">📈 +${state.profile.progress.toFixed(1)} кг</div>
                 </div>
-                <button onclick="window.editProfile()">✏️</button>
                 <div class="vs-badge">VS</div>
-                <div class="profile-info" style="text-align: right;">
+                <div class="profile-info" style="text-align: right; cursor: pointer;" onclick="window.viewPartnerHistory()">
                     <div class="profile-name">
                         ${state.partner.name}
-                        ${unlockedPlayer === 'partner' ? '<span class="unlocked-badge">✓</span>' : ''}
+                        ${unlockedPlayer === 'partner' ? '<span class="active-badge">✓</span>' : ''}
                     </div>
-                    <div class="profile-status">📈 +${state.partner.progress.toFixed(1)} кг</div>
+                    <div class="profile-status">📈 +${state.partner.progress.toFixed(1)} кг 👁️</div>
                 </div>
-                <button onclick="window.editPartner()">✏️</button>
-                ${unlockedPlayer ? `<button onclick="window.logout()" class="logout-btn">Выйти</button>` : ''}
+                ${unlockedPlayer ? `<button onclick="window.logout()" class="logout-btn" style="margin-left: auto;">Выйти</button>` : ''}
             </div>
             
             <div class="tabs">
                 <button class="tab ${currentTab === 'training' ? 'active' : ''}" onclick="window.switchTab('training')">🏋️ Треня</button>
                 <button class="tab ${currentTab === 'calendar' ? 'active' : ''}" onclick="window.switchTab('calendar')">📅 Календарь</button>
+                <button class="tab ${currentTab === 'history' ? 'active' : ''}" onclick="window.switchTab('history')">📜 История</button>
                 <button class="tab ${currentTab === 'battle' ? 'active' : ''}" onclick="window.switchTab('battle')">⚔️ Баттл</button>
                 <button class="tab ${currentTab === 'settings' ? 'active' : ''}" onclick="window.switchTab('settings')">⚙️ Настр</button>
             </div>
         `;
 
-        if (currentTab === 'training') {
+        if (viewingPartnerHistory) {
+            html += renderPartnerHistoryView();
+        } else if (currentTab === 'training') {
             html += renderTrainingTab();
         } else if (currentTab === 'calendar') {
             html += renderCalendarTab();
+        } else if (currentTab === 'history') {
+            html += renderHistoryTab();
         } else if (currentTab === 'battle') {
             html += renderBattleTab();
         } else if (currentTab === 'settings') {
@@ -505,6 +520,66 @@
         }
 
         app.innerHTML = html;
+    }
+    
+    function renderPartnerHistoryView() {
+        let html = `
+            <button class="back-btn" onclick="window.backFromHistory()">← Назад к тренировке</button>
+            <div style="background: #161b22; border-radius: 16px; padding: 16px;">
+                <h2>📜 Тренировки ${state.partner.name}</h2>
+        `;
+        
+        const partnerHistory = state.history.filter(h => h.player === 'partner').sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        if (partnerHistory.length === 0) {
+            html += `<p style="color: #8b949e; text-align: center; padding: 20px;">${state.partner.name} ещё не тренировался</p>`;
+        } else {
+            partnerHistory.forEach((h, index) => {
+                const historyId = `partner_hist_${index}`;
+                const isExpanded = expandedHistory[historyId] || false;
+                const statusIcon = h.completed ? '✅' : '❌';
+                
+                html += `
+                    <div class="history-item">
+                        <div class="history-header">
+                            <div>
+                                <span class="history-date">${h.date}</span>
+                                <span style="margin-left: 10px;">${h.dayName || DAY_CONFIG[h.dayIndex]?.name || 'Тренировка'}</span>
+                            </div>
+                            <span>${statusIcon}</span>
+                        </div>
+                        <div class="history-player">
+                            ${h.completed ? `+${h.progress} кг` : 'пропуск'}
+                        </div>
+                        
+                        <button class="expand-btn" onclick="window.toggleHistory('${historyId}')" style="margin-top: 8px; width: 100%;">
+                            ${isExpanded ? '▲ Скрыть' : '▼ Показать упражнения'}
+                        </button>
+                `;
+                
+                if (isExpanded && h.exercises) {
+                    html += `<div style="margin-top: 12px;">`;
+                    h.exercises.forEach(ex => {
+                        html += `
+                            <div class="history-exercise">
+                                <div class="history-ex-name">${ex.name} (${ex.group})</div>
+                                <div class="history-sets">
+                                    ${ex.sets.map((s, i) => `
+                                        <span class="history-set">${i+1}: ${s.weight} кг × ${s.reps}</span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+                
+                html += `</div>`;
+            });
+        }
+        
+        html += `</div>`;
+        return html;
     }
 
     function renderTrainingTab() {
@@ -522,13 +597,9 @@
                 </div>
             </div>
             
-            <div class="who-trained">
-                <div class="who-btn ${state.currentPlayer === 'me' ? 'active' : ''} ${unlockedPlayer === 'me' ? 'unlocked' : ''}" onclick="window.switchPlayer('me')">
-                    ${state.profile.name} ${unlockedPlayer === 'me' ? '✅' : '🔒'}
-                </div>
-                <div class="who-btn ${state.currentPlayer === 'partner' ? 'active' : ''} ${unlockedPlayer === 'partner' ? 'unlocked' : ''}" onclick="window.switchPlayer('partner')">
-                    ${state.partner.name} ${unlockedPlayer === 'partner' ? '✅' : '🔒'}
-                </div>
+            <div style="background: #161b22; padding: 10px; border-radius: 12px; margin-bottom: 16px;">
+                <p style="margin-bottom: 6px;">👤 Тренируется: <strong>${unlockedPlayer === 'me' ? state.profile.name : unlockedPlayer === 'partner' ? state.partner.name : 'Никто'}</strong></p>
+                ${!unlockedPlayer ? '<p style="color: #f85149; font-size: 13px;">⚠️ Зайдите в Настройки → выберите профиль</p>' : ''}
             </div>
             
             <div style="background: #161b22; padding: 10px; border-radius: 12px; margin-bottom: 16px;">
@@ -545,41 +616,45 @@
             const exs = state.currentExercises.filter(e => e.group === group);
             html += `<h3 style="margin: 12px 0;">${group} <button onclick="window.addExercise('${group}')" style="margin-left: 10px;">➕</button></h3>`;
             
-            exs.forEach(ex => {
-                html += `
-                    <div style="background: #161b22; border-radius: 12px; padding: 12px; margin-bottom: 10px;">
-                        <div style="display: flex; gap: 6px; margin-bottom: 10px;">
-                            <input value="${ex.name}" onchange="window.updateExName('${ex.id}', this.value)" 
-                                   style="background: #0d1117; border: 1px solid #30363d; color: white; padding: 8px; border-radius: 8px; width: 100%;">
-                            <button onclick="window.deleteEx('${ex.id}')" class="btn-danger">🗑️</button>
-                        </div>
-                        ${ex.sets.map((s, i) => `
-                            <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
-                                <span style="min-width: 30px;">${i+1}</span>
-                                <input type="number" value="${s.weight}" step="2.5" 
-                                       onchange="window.updateSet('${ex.id}', ${i}, 'weight', this.value)"
-                                       style="background: #21262d; border: 1px solid #30363d; color: white; padding: 6px; border-radius: 6px; width: 70px;">
-                                <span>кг</span>
-                                <input type="number" value="${s.reps}" 
-                                       onchange="window.updateSet('${ex.id}', ${i}, 'reps', this.value)"
-                                       style="background: #21262d; border: 1px solid #30363d; color: white; padding: 6px; border-radius: 6px; width: 60px;">
-                                <span>раз</span>
-                                <button onclick="window.removeSet('${ex.id}', ${i})" style="margin-left: auto; padding: 4px 8px;">−</button>
+            if (exs.length === 0) {
+                html += `<p style="color: #8b949e; padding: 12px; text-align: center;">Нет упражнений. Нажмите ➕ чтобы добавить</p>`;
+            } else {
+                exs.forEach(ex => {
+                    html += `
+                        <div style="background: #161b22; border-radius: 12px; padding: 12px; margin-bottom: 10px;">
+                            <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+                                <input value="${ex.name}" onchange="window.updateExName('${ex.id}', this.value)" 
+                                       style="background: #0d1117; border: 1px solid #30363d; color: white; padding: 8px; border-radius: 8px; width: 100%;">
+                                <button onclick="window.deleteEx('${ex.id}')" class="btn-danger">🗑️</button>
                             </div>
-                        `).join('')}
-                        <button onclick="window.addSet('${ex.id}')" style="width: 100%; margin-top: 8px;">+ Подход</button>
-                    </div>
-                `;
-            });
+                            ${ex.sets.map((s, i) => `
+                                <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
+                                    <span style="min-width: 30px;">${i+1}</span>
+                                    <input type="number" value="${s.weight}" step="2.5" 
+                                           onchange="window.updateSet('${ex.id}', ${i}, 'weight', this.value)"
+                                           style="background: #21262d; border: 1px solid #30363d; color: white; padding: 6px; border-radius: 6px; width: 70px;">
+                                    <span>кг ×</span>
+                                    <input type="number" value="${s.reps}" 
+                                           onchange="window.updateSet('${ex.id}', ${i}, 'reps', this.value)"
+                                           style="background: #21262d; border: 1px solid #30363d; color: white; padding: 6px; border-radius: 6px; width: 60px;">
+                                    <span>раз</span>
+                                    <button onclick="window.removeSet('${ex.id}', ${i})" style="margin-left: auto; padding: 4px 8px;">−</button>
+                                </div>
+                            `).join('')}
+                            <button onclick="window.addSet('${ex.id}')" style="width: 100%; margin-top: 8px;">+ Подход</button>
+                        </div>
+                    `;
+                });
+            }
         });
 
-        const isUnlocked = unlockedPlayer === state.currentPlayer;
+        const isUnlocked = !!unlockedPlayer;
         html += `
             <div style="display: flex; gap: 10px; margin: 20px 0;">
                 <button class="btn-primary" onclick="window.finishTraining(true)" style="flex: 1; padding: 16px; ${!isUnlocked ? 'opacity: 0.5;' : ''}">✅ ВЫПОЛНЕНО</button>
                 <button class="btn-danger" onclick="window.finishTraining(false)" style="flex: 1; padding: 16px; ${!isUnlocked ? 'opacity: 0.5;' : ''}">❌ ПРОПУСК</button>
             </div>
-            ${!isUnlocked ? '<p style="color: #f85149; text-align: center;">🔒 Войдите под своим профилем</p>' : ''}
+            ${!isUnlocked ? '<p style="color: #f85149; text-align: center;">🔒 Зайдите в Настройки и выберите профиль</p>' : ''}
         `;
         
         return html;
@@ -685,36 +760,101 @@
         return html;
     }
 
+    function renderHistoryTab() {
+        let html = `
+            <div style="background: #161b22; border-radius: 16px; padding: 16px;">
+                <h2>📜 Вся история</h2>
+        `;
+        
+        const allHistory = [...state.history].sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        if (allHistory.length === 0) {
+            html += `<p style="color: #8b949e; text-align: center; padding: 20px;">История пуста</p>`;
+        } else {
+            allHistory.forEach((h, index) => {
+                const historyId = `all_hist_${index}`;
+                const isExpanded = expandedHistory[historyId] || false;
+                const statusIcon = h.completed ? '✅' : '❌';
+                
+                html += `
+                    <div class="history-item">
+                        <div class="history-header">
+                            <div>
+                                <span class="history-date">${h.date}</span>
+                                <span style="margin-left: 10px;">${h.dayName || DAY_CONFIG[h.dayIndex]?.name || 'Тренировка'}</span>
+                            </div>
+                            <span>${statusIcon}</span>
+                        </div>
+                        <div class="history-player">
+                            ${h.playerName} • ${h.completed ? `+${h.progress} кг` : 'пропуск'}
+                        </div>
+                        
+                        <button class="expand-btn" onclick="window.toggleHistory('${historyId}')" style="margin-top: 8px; width: 100%;">
+                            ${isExpanded ? '▲ Скрыть' : '▼ Показать упражнения'}
+                        </button>
+                `;
+                
+                if (isExpanded && h.exercises) {
+                    html += `<div style="margin-top: 12px;">`;
+                    h.exercises.forEach(ex => {
+                        html += `
+                            <div class="history-exercise">
+                                <div class="history-ex-name">${ex.name} (${ex.group})</div>
+                                <div class="history-sets">
+                                    ${ex.sets.map((s, i) => `
+                                        <span class="history-set">${i+1}: ${s.weight} кг × ${s.reps}</span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+                
+                html += `</div>`;
+            });
+        }
+        
+        html += `</div>`;
+        return html;
+    }
+
     function renderBattleTab() {
         const my = state.profile.progress;
         const pt = state.partner.progress;
         const leader = my > pt ? state.profile.name : pt > my ? state.partner.name : 'Ничья';
         
+        const myWorkouts = state.history.filter(h => h.player === 'me' && h.completed).length;
+        const partnerWorkouts = state.history.filter(h => h.player === 'partner' && h.completed).length;
+        
         return `
             <div style="background: #161b22; border-radius: 16px; padding: 16px;">
                 <h2>⚔️ БАТТЛ</h2>
+                
                 <div style="background: #0d1117; padding: 12px; border-radius: 10px; margin: 12px 0;">
                     <div style="display: flex; justify-content: space-between;">
                         <span>${state.profile.name}</span>
                         <span style="color: #3fb950; font-size: 24px; font-weight: bold;">+${my.toFixed(1)} кг</span>
                     </div>
+                    <div style="color: #8b949e; font-size: 14px; margin-top: 4px;">
+                        ${myWorkouts} тренировок
+                    </div>
                 </div>
+                
                 <div style="background: #0d1117; padding: 12px; border-radius: 10px; margin: 12px 0;">
                     <div style="display: flex; justify-content: space-between;">
                         <span>${state.partner.name}</span>
                         <span style="color: #f0883e; font-size: 24px; font-weight: bold;">+${pt.toFixed(1)} кг</span>
                     </div>
+                    <div style="color: #8b949e; font-size: 14px; margin-top: 4px;">
+                        ${partnerWorkouts} тренировок
+                    </div>
                 </div>
+                
                 <div style="text-align: center; padding: 20px; background: #0d1117; border-radius: 12px; margin-top: 20px;">
                     <h3>🏆 ${leader} ${leader === 'Ничья' ? '' : 'лидирует!'}</h3>
                     <p style="font-size: 18px; margin-top: 8px;">Разница: ${Math.abs(my - pt).toFixed(1)} кг</p>
                 </div>
-                <h3 style="margin: 20px 0 10px;">📊 История</h3>
-                ${state.history.filter(h => h.completed).slice(-5).reverse().map(h => `
-                    <div style="padding: 8px; background: #0d1117; border-radius: 8px; margin-top: 8px;">
-                        ${h.date} - ${h.player === 'me' ? state.profile.name : state.partner.name}: ${h.completed ? '✅' : '❌'}
-                    </div>
-                `).join('')}
             </div>
         `;
     }
@@ -723,6 +863,17 @@
         return `
             <div style="background: #161b22; border-radius: 16px; padding: 16px;">
                 <h2>⚙️ Настройки</h2>
+                
+                <h3 style="margin: 20px 0 10px;">👤 Выбор профиля</h3>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button class="who-btn ${unlockedPlayer === 'me' ? 'active' : ''}" onclick="window.switchPlayer('me')" style="flex: 1;">
+                        ${state.profile.name} ${unlockedPlayer === 'me' ? '✅' : ''}
+                    </button>
+                    <button class="who-btn ${unlockedPlayer === 'partner' ? 'active' : ''}" onclick="window.switchPlayer('partner')" style="flex: 1;">
+                        ${state.partner.name} ${unlockedPlayer === 'partner' ? '✅' : ''}
+                    </button>
+                </div>
+                ${!unlockedPlayer ? '<p style="color: #f85149; margin-bottom: 20px;">Выберите профиль для тренировки</p>' : ''}
                 
                 <h3 style="margin: 20px 0 10px;">${state.profile.name} ${state.profile.isAdmin ? '👑' : ''}</h3>
                 <p style="color: #8b949e;">PIN (4 цифры):</p>
@@ -740,14 +891,20 @@
                 <button class="btn-primary" onclick="window.saveToken()" style="width: 100%;">💾 Сохранить токен</button>
                 
                 <div style="margin-top: 20px; padding: 12px; background: #1a2329; border-radius: 10px;">
-                    <p>🔐 Ввел PIN один раз — активен до выхода</p>
-                    <p>👑 ${state.profile.name} — администратор (может менять календарь)</p>
+                    <p>👤 Выберите профиль выше, чтобы тренироваться</p>
+                    <p>👁️ Нажмите на ${state.partner.name} в шапке — посмотрите его историю</p>
+                    <p>👑 ${state.profile.name} — администратор</p>
                 </div>
             </div>
         `;
     }
 
-    window.switchTab = (tab) => { currentTab = tab; render(); };
+    // Глобальные функции
+    window.switchTab = (tab) => { 
+        viewingPartnerHistory = false;
+        currentTab = tab; 
+        render(); 
+    };
     window.switchPlayer = (p) => switchPlayer(p);
     window.finishTraining = (isDone) => finishTraining(isDone);
     
@@ -756,8 +913,6 @@
     
     window.selectDate = (dateStr, workoutType) => {
         state.selectedDate = dateStr;
-        
-        // Если есть запланированная тренировка — переключаем на неё
         if (workoutType) {
             const typeIndex = DAY_CONFIG.findIndex(d => d.type === workoutType);
             if (typeIndex >= 0) {
@@ -765,8 +920,13 @@
                 loadExercises();
             }
         }
-        
         currentTab = 'training';
+        viewingPartnerHistory = false;
+        render();
+    };
+    
+    window.toggleHistory = (historyId) => {
+        expandedHistory[historyId] = !expandedHistory[historyId];
         render();
     };
     
@@ -844,4 +1004,4 @@
 })();
 </script>
 </body>
-</html>
+    </html>
