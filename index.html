@@ -426,6 +426,7 @@
             completed: isDone
         });
         
+        // Переключаем на следующий день по циклу
         state.currentDayIndex = (state.currentDayIndex + 1) % 3;
         state.selectedDate = new Date().toISOString().split('T')[0];
         
@@ -633,7 +634,7 @@
             if (workout) classes += ' workout-day';
             
             html += `
-                <div class="${classes}" onclick="window.selectDate('${dateStr}')">
+                <div class="${classes}" onclick="window.selectDate('${dateStr}', '${workout?.type || ''}')">
                     <div class="calendar-day-number">${d}</div>
                     <div class="calendar-day-label">${workout ? workout.description : ''}</div>
                 </div>
@@ -753,8 +754,18 @@
     window.prevMonth = () => { calendarMonth.setMonth(calendarMonth.getMonth() - 1); render(); };
     window.nextMonth = () => { calendarMonth.setMonth(calendarMonth.getMonth() + 1); render(); };
     
-    window.selectDate = (dateStr) => {
+    window.selectDate = (dateStr, workoutType) => {
         state.selectedDate = dateStr;
+        
+        // Если есть запланированная тренировка — переключаем на неё
+        if (workoutType) {
+            const typeIndex = DAY_CONFIG.findIndex(d => d.type === workoutType);
+            if (typeIndex >= 0) {
+                state.currentDayIndex = typeIndex;
+                loadExercises();
+            }
+        }
+        
         currentTab = 'training';
         render();
     };
@@ -833,4 +844,4 @@
 })();
 </script>
 </body>
-  </html>
+</html>
