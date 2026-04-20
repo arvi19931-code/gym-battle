@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Gym Battle Pro</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 12px;
+            min-height: 100vh;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .profile-section {
+            background: #161b22;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .profile-avatar {
+            width: 45px;
+            height: 45px;
+            background: #238636;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .profile-info { flex: 1; min-width: 100px; }
+        .profile-name { font-size: 16px; font-weight: bold; }
+        .profile-status { font-size: 12px; color: #8b949e; }
+        .vs-badge { background: #f0883e; padding: 4px 8px; border-radius: 20px; font-weight: bold; font-size: 12px; }
+        .unlocked-badge {
+            background: #238636;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 6px;
+        }
+        .admin-badge {
+            background: #9e6a03;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 6px;
+        }
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            background: #161b22;
+            padding: 5px;
+            border-radius: 50px;
+            overflow-x: auto;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px 4px;
+            text-align: center;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            background: transparent;
+            color: #8b949e;
+            border: none;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        .tab.active { background: #238636; color: white; }
+        .bank-card {
+            background: linear-gradient(145deg, #1a2e22, #0d1f15);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #2ea043;
+        }
+        .bank-amount { font-size: 48px; font-weight: 900; color: #a5d6ff; }
+        button {
+            background: #21262d;
+            border: none;
+            color: #c9d1d9;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid #30363d;
+        }
+        .btn-primary { background: #238636; border-color: #2ea043; color: white; }
+        .btn-danger { background: #da3633; border-color: #f85149; color: white; }
+        .btn-warning { background: #9e6a03; border-color: #d29922; color: white; }
+        .settings-input {
+            width: 100%;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin: 8px 0;
+        }
+        .who-trained { display: flex; gap: 10px; margin: 15px 0; }
+        .who-btn {
+            flex: 1;
+            padding: 12px;
+            background: #21262d;
+            border: 2px solid #30363d;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .who-btn.active { border-color: #238636; background: #1a3322; }
+        .who-btn.unlocked { border-color: #f0883e; }
+        .pin-dialog {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .pin-box {
+            background: #161b22;
+            padding: 24px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 320px;
+            text-align: center;
+        }
+        .pin-input {
+            background: #0d1117;
+            border: 2px solid #30363d;
+            color: white;
+            font-size: 32px;
+            padding: 12px;
+            border-radius: 16px;
+            width: 100%;
+            text-align: center;
+            letter-spacing: 8px;
+            margin: 16px 0;
+        }
+        .pin-error { color: #f85149; margin: 8px 0; font-size: 14px; }
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #f85149;
+            color: #f85149;
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+        .calendar-day-header {
+            text-align: center;
+            font-weight: bold;
+            color: #8b949e;
+            padding: 8px 0;
+            font-size: 12px;
+        }
+        .calendar-day {
+            background: #161b22;
+            border-radius: 8px;
+            padding: 8px 4px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #30363d;
+            min-height: 60px;
+        }
+        .calendar-day.today { border: 2px solid #f0883e; }
+        .calendar-day.past { opacity: 0.5; }
+        .calendar-day.future { background: #1a2329; }
+        .calendar-day.workout-day { background: #1a3322; border-color: #238636; }
+        .calendar-day-number { font-weight: bold; margin-bottom: 4px; }
+        .calendar-day-label {
+            font-size: 10px;
+            color: #8b949e;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .calendar-legend {
+            display: flex;
+            gap: 12px;
+            margin: 16px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        .workout-editor {
+            background: #161b22;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        .workout-item {
+            background: #0d1117;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .workout-type {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .type-spina { background: #238636; }
+        .type-plechi { background: #9e6a03; }
+        .type-grud { background: #da3633; }
+        .type-other { background: #6e7681; }
+    </style>
+</head>
+<body>
+
+<div id="app">Загрузка...</div>
+
+<script>
+(function() {
+    const GIST_ID = 'd03a67ce07bf4d0ef42cc31824b7f396';
+    let GITHUB_TOKEN = '';
+    
+    let state = {
+        profile: { name: 'Игрок 1', progress: 0, pin: '', isAdmin: true },
+        partner: { name: 'Игрок 2', progress: 0, pin: '' },
+        bank: 0,
+        currentDayIndex: 0,
+        templates: { 'Спина': [], 'Трицепс': [], 'Плечи': [], 'Пресс': [], 'Грудь': [], 'Бицепс': [] },
+        currentExercises: [],
+        history: [],
+        selectedDate: new Date().toISOString().split('T')[0],
+        currentPlayer: 'me',
+        schedule: []
+    };
+
+    let unlockedPlayer = null;
+    let currentTab = 'training';
+    let calendarMonth = new Date();
+    
+    const DAY_CONFIG = [
+        { groups: ['Спина', 'Трицепс'], name: 'СПИНА + ТРИЦЕПС', type: 'spina' },
+        { groups: ['Плечи', 'Пресс'], name: 'ПЛЕЧИ + ПРЕСС', type: 'plechi' },
+        { groups: ['Грудь', 'Бицепс'], name: 'ГРУДЬ + БИЦЕПС', type: 'grud' }
+    ];
+
+    function loadFromLocal() {
+        const saved = localStorage.getItem('gym_pro_backup');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                state = { ...state, ...parsed };
+                if (!state.profile.pin) state.profile.pin = '';
+                if (!state.partner.pin) state.partner.pin = '';
+                if (!state.schedule) state.schedule = [];
+                if (state.profile.isAdmin === undefined) state.profile.isAdmin = true;
+            } catch(e) {}
+        }
+        const savedToken = localStorage.getItem('gym_github_token');
+        if (savedToken) GITHUB_TOKEN = savedToken;
+        loadExercises();
+    }
+
+    function loadExercises() {
+        const groups = DAY_CONFIG[state.currentDayIndex].groups;
+        let newList = [];
+        groups.forEach(group => {
+            (state.templates[group] || []).forEach(t => {
+                newList.push({
+                    id: Date.now() + Math.random() + '',
+                    group: group,
+                    name: t.name,
+                    sets: t.sets || [{ weight: 20, reps: 15 }]
+                });
+            });
+        });
+        state.currentExercises = newList;
+    }
+
+    function saveToLocal() {
+        localStorage.setItem('gym_pro_backup', JSON.stringify(state));
+    }
+
+    function initDemoData() {
+        if (state.templates['Спина'].length === 0) {
+            state.templates['Спина'] = [{ name: 'Тяга верхнего блока', sets: [{ weight: 20, reps: 15 }, { weight: 40, reps: 12 }, { weight: 60, reps: 10 }] }];
+            state.templates['Трицепс'] = [{ name: 'Жим узким', sets: [{ weight: 50, reps: 12 }] }];
+            state.templates['Плечи'] = [{ name: 'Жим гантелей', sets: [{ weight: 22, reps: 12 }] }];
+            state.templates['Пресс'] = [{ name: 'Скручивания', sets: [{ weight: 10, reps: 15 }] }];
+            state.templates['Грудь'] = [{ name: 'Жим лёжа', sets: [{ weight: 60, reps: 10 }] }];
+            state.templates['Бицепс'] = [{ name: 'ПШНБ', sets: [{ weight: 30, reps: 12 }] }];
+            saveToLocal();
+        }
+    }
+
+    function isAdmin() {
+        return unlockedPlayer === 'me' && state.profile.isAdmin;
+    }
+
+    function switchPlayer(player) {
+        if (unlockedPlayer === player) {
+            state.currentPlayer = player;
+            render();
+            return;
+        }
+        
+        const expectedPin = player === 'me' ? state.profile.pin : state.partner.pin;
+        const playerName = player === 'me' ? state.profile.name : state.partner.name;
+        
+        if (!expectedPin) {
+            unlockedPlayer = player;
+            state.currentPlayer = player;
+            render();
+            return;
+        }
+        
+        const pinDialog = document.createElement('div');
+        pinDialog.className = 'pin-dialog';
+        pinDialog.innerHTML = `
+            <div class="pin-box">
+                <h3>🔐 Вход</h3>
+                <p style="color: #8b949e; margin: 8px 0;">${playerName}</p>
+                <input type="password" id="pinInput" class="pin-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" autofocus>
+                <div id="pinError" class="pin-error"></div>
+                <div style="display: flex; gap: 10px; margin-top: 16px;">
+                    <button onclick="window.cancelPin()" style="flex: 1;">Отмена</button>
+                    <button onclick="window.checkPin('${player}')" class="btn-primary" style="flex: 1;">Войти</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(pinDialog);
+        
+        const input = document.getElementById('pinInput');
+        input.focus();
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.checkPin(player);
+        });
+    }
+
+    window.checkPin = (player) => {
+        const input = document.getElementById('pinInput');
+        const enteredPin = input.value;
+        const expectedPin = player === 'me' ? state.profile.pin : state.partner.pin;
+        
+        if (enteredPin === expectedPin) {
+            unlockedPlayer = player;
+            state.currentPlayer = player;
+            closePinDialog();
+            render();
+        } else {
+            document.getElementById('pinError').textContent = 'Неверный PIN';
+            input.value = '';
+            input.focus();
+        }
+    };
+
+    window.cancelPin = () => closePinDialog();
+    function closePinDialog() {
+        const dialog = document.querySelector('.pin-dialog');
+        if (dialog) dialog.remove();
+    }
+
+    window.logout = () => {
+        unlockedPlayer = null;
+        render();
+    };
+
+    function finishTraining(isDone) {
+        if (unlockedPlayer !== state.currentPlayer) {
+            alert('Сначала войдите под своим профилем!');
+            return;
+        }
+        
+        if (isDone) {
+            state.bank += 100;
+            if (state.currentPlayer === 'me') state.profile.progress += 2.5;
+            else state.partner.progress += 2.5;
+            
+            const groups = DAY_CONFIG[state.currentDayIndex].groups;
+            groups.forEach(group => {
+                const exs = state.currentExercises.filter(e => e.group === group);
+                state.templates[group] = exs.map(e => ({
+                    name: e.name,
+                    sets: e.sets.map(s => ({ ...s, weight: s.weight + 2.5 }))
+                }));
+            });
+        } else {
+            state.bank += 200;
+        }
+        
+        state.history.push({
+            date: state.selectedDate,
+            dayIndex: state.currentDayIndex,
+            player: state.currentPlayer,
+            completed: isDone
+        });
+        
+        state.currentDayIndex = (state.currentDayIndex + 1) % 3;
+        state.selectedDate = new Date().toISOString().split('T')[0];
+        
+        loadExercises();
+        saveToLocal();
+        render();
+    }
+
+    function addToSchedule(date, type, description) {
+        if (!isAdmin()) {
+            alert('Только администратор может менять расписание!');
+            return;
+        }
+        state.schedule.push({ date, type, description });
+        saveToLocal();
+        render();
+    }
+
+    function removeFromSchedule(index) {
+        if (!isAdmin()) {
+            alert('Только администратор может менять расписание!');
+            return;
+        }
+        state.schedule.splice(index, 1);
+        saveToLocal();
+        render();
+    }
+
+    function getWorkoutForDate(dateStr) {
+        return state.schedule.find(w => w.date === dateStr);
+    }
+
+    function render() {
+        const app = document.getElementById('app');
+        
+        let html = `
+            <div class="profile-section">
+                <div class="profile-avatar" style="background: #238636;">${state.profile.name[0]}</div>
+                <div class="profile-info">
+                    <div class="profile-name">
+                        ${state.profile.name}
+                        ${unlockedPlayer === 'me' ? '<span class="unlocked-badge">✓</span>' : ''}
+                        ${state.profile.isAdmin ? '<span class="admin-badge">👑</span>' : ''}
+                    </div>
+                    <div class="profile-status">📈 +${state.profile.progress.toFixed(1)} кг</div>
+                </div>
+                <button onclick="window.editProfile()">✏️</button>
+                <div class="vs-badge">VS</div>
+                <div class="profile-info" style="text-align: right;">
+                    <div class="profile-name">
+                        ${state.partner.name}
+                        ${unlockedPlayer === 'partner' ? '<span class="unlocked-badge">✓</span>' : ''}
+                    </div>
+                    <div class="profile-status">📈 +${state.partner.progress.toFixed(1)} кг</div>
+                </div>
+                <button onclick="window.editPartner()">✏️</button>
+                ${unlockedPlayer ? `<button onclick="window.logout()" class="logout-btn">Выйти</button>` : ''}
+            </div>
+            
+            <div class="tabs">
+                <button class="tab ${currentTab === 'training' ? 'active' : ''}" onclick="window.switchTab('training')">🏋️ Треня</button>
+                <button class="tab ${currentTab === 'calendar' ? 'active' : ''}" onclick="window.switchTab('calendar')">📅 Календарь</button>
+                <button class="tab ${currentTab === 'battle' ? 'active' : ''}" onclick="window.switchTab('battle')">⚔️ Баттл</button>
+                <button class="tab ${currentTab === 'settings' ? 'active' : ''}" onclick="window.switchTab('settings')">⚙️ Настр</button>
+            </div>
+        `;
+
+        if (currentTab === 'training') {
+            html += renderTrainingTab();
+        } else if (currentTab === 'calendar') {
+            html += renderCalendarTab();
+        } else if (currentTab === 'battle') {
+            html += renderBattleTab();
+        } else if (currentTab === 'settings') {
+            html += renderSettingsTab();
+        }
+
+        app.innerHTML = html;
+    }
+
+    function renderTrainingTab() {
+        const day = DAY_CONFIG[state.currentDayIndex];
+        let html = `
+            <div class="bank-card">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>🏦 ОБЩИЙ БАНК</span>
+                    <button onclick="window.setBank()">✏️</button>
+                </div>
+                <div class="bank-amount">${state.bank} ₽</div>
+                <div style="display: flex; gap: 10px; margin-top: 12px;">
+                    <span style="color: #3fb950;">✅ +100₽</span>
+                    <span style="color: #f85149;">❌ +200₽</span>
+                </div>
+            </div>
+            
+            <div class="who-trained">
+                <div class="who-btn ${state.currentPlayer === 'me' ? 'active' : ''} ${unlockedPlayer === 'me' ? 'unlocked' : ''}" onclick="window.switchPlayer('me')">
+                    ${state.profile.name} ${unlockedPlayer === 'me' ? '✅' : '🔒'}
+                </div>
+                <div class="who-btn ${state.currentPlayer === 'partner' ? 'active' : ''} ${unlockedPlayer === 'partner' ? 'unlocked' : ''}" onclick="window.switchPlayer('partner')">
+                    ${state.partner.name} ${unlockedPlayer === 'partner' ? '✅' : '🔒'}
+                </div>
+            </div>
+            
+            <div style="background: #161b22; padding: 10px; border-radius: 12px; margin-bottom: 16px;">
+                <input type="date" value="${state.selectedDate}" onchange="state.selectedDate=this.value" 
+                       style="background: #0d1117; border: 1px solid #30363d; color: white; padding: 8px; border-radius: 8px; width: 100%;">
+            </div>
+            
+            <div style="background: #21262d; padding: 12px; border-radius: 16px; margin-bottom: 16px; border-left: 6px solid #f0883e;">
+                ${day.name} • День ${state.currentDayIndex+1}/3
+            </div>
+        `;
+
+        day.groups.forEach(group => {
+            const exs = state.currentExercises.filter(e => e.group === group);
+            html += `<h3 style="margin: 12px 0;">${group} <button onclick="window.addExercise('${group}')" style="margin-left: 10px;">➕</button></h3>`;
+            
+            exs.forEach(ex => {
+                html += `
+                    <div style="background: #161b22; border-radius: 12px; padding: 12px; margin-bottom: 10px;">
+                        <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+                            <input value="${ex.name}" onchange="window.updateExName('${ex.id}', this.value)" 
+                                   style="background: #0d1117; border: 1px solid #30363d; color: white; padding: 8px; border-radius: 8px; width: 100%;">
+                            <button onclick="window.deleteEx('${ex.id}')" class="btn-danger">🗑️</button>
+                        </div>
+                        ${ex.sets.map((s, i) => `
+                            <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
+                                <span style="min-width: 30px;">${i+1}</span>
+                                <input type="number" value="${s.weight}" step="2.5" 
+                                       onchange="window.updateSet('${ex.id}', ${i}, 'weight', this.value)"
+                                       style="background: #21262d; border: 1px solid #30363d; color: white; padding: 6px; border-radius: 6px; width: 70px;">
+                                <span>кг</span>
+                                <input type="number" value="${s.reps}" 
+                                       onchange="window.updateSet('${ex.id}', ${i}, 'reps', this.value)"
+                                       style="background: #21262d; border: 1px solid #30363d; color: white; padding: 6px; border-radius: 6px; width: 60px;">
+                                <span>раз</span>
+                                <button onclick="window.removeSet('${ex.id}', ${i})" style="margin-left: auto; padding: 4px 8px;">−</button>
+                            </div>
+                        `).join('')}
+                        <button onclick="window.addSet('${ex.id}')" style="width: 100%; margin-top: 8px;">+ Подход</button>
+                    </div>
+                `;
+            });
+        });
+
+        const isUnlocked = unlockedPlayer === state.currentPlayer;
+        html += `
+            <div style="display: flex; gap: 10px; margin: 20px 0;">
+                <button class="btn-primary" onclick="window.finishTraining(true)" style="flex: 1; padding: 16px; ${!isUnlocked ? 'opacity: 0.5;' : ''}">✅ ВЫПОЛНЕНО</button>
+                <button class="btn-danger" onclick="window.finishTraining(false)" style="flex: 1; padding: 16px; ${!isUnlocked ? 'opacity: 0.5;' : ''}">❌ ПРОПУСК</button>
+            </div>
+            ${!isUnlocked ? '<p style="color: #f85149; text-align: center;">🔒 Войдите под своим профилем</p>' : ''}
+        `;
+        
+        return html;
+    }
+
+    function renderCalendarTab() {
+        const year = calendarMonth.getFullYear();
+        const month = calendarMonth.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        let startDay = firstDay.getDay();
+        if (startDay === 0) startDay = 7;
+        
+        let html = `
+            <div class="calendar-header">
+                <button onclick="window.prevMonth()">←</button>
+                <h2>${calendarMonth.toLocaleString('ru', { month: 'long', year: 'numeric' })}</h2>
+                <button onclick="window.nextMonth()">→</button>
+            </div>
+            
+            <div class="calendar-grid">
+                <div class="calendar-day-header">Пн</div>
+                <div class="calendar-day-header">Вт</div>
+                <div class="calendar-day-header">Ср</div>
+                <div class="calendar-day-header">Чт</div>
+                <div class="calendar-day-header">Пт</div>
+                <div class="calendar-day-header">Сб</div>
+                <div class="calendar-day-header">Вс</div>
+        `;
+        
+        for (let i = 1; i < startDay; i++) {
+            html += `<div class="calendar-day" style="opacity: 0.3;"></div>`;
+        }
+        
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        
+        for (let d = 1; d <= lastDay.getDate(); d++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const workout = getWorkoutForDate(dateStr);
+            const isToday = dateStr === today;
+            
+            const checkDate = new Date(year, month, d);
+            const todayDate = new Date();
+            todayDate.setHours(0, 0, 0, 0);
+            const isPast = checkDate < todayDate;
+            
+            let classes = 'calendar-day';
+            if (isToday) classes += ' today';
+            if (isPast) classes += ' past';
+            if (!isPast && !isToday) classes += ' future';
+            if (workout) classes += ' workout-day';
+            
+            html += `
+                <div class="${classes}" onclick="window.selectDate('${dateStr}')">
+                    <div class="calendar-day-number">${d}</div>
+                    <div class="calendar-day-label">${workout ? workout.description : ''}</div>
+                </div>
+            `;
+        }
+        
+        html += `</div>`;
+        
+        html += `
+            <div class="calendar-legend">
+                <div class="legend-item"><div class="legend-color" style="background: #1a3322;"></div> Тренировка</div>
+                <div class="legend-item"><div class="legend-color" style="border: 2px solid #f0883e;"></div> Сегодня</div>
+            </div>
+        `;
+        
+        if (isAdmin()) {
+            const todayForInput = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            html += `
+                <div class="workout-editor">
+                    <h3>✏️ Редактор расписания</h3>
+                    <div style="display: flex; gap: 8px; margin: 12px 0;">
+                        <input type="date" id="newWorkoutDate" class="settings-input" style="flex: 1;" value="${todayForInput}">
+                        <select id="newWorkoutType" class="settings-input" style="flex: 1;">
+                            <option value="spina">Спина+Трицепс</option>
+                            <option value="plechi">Плечи+Пресс</option>
+                            <option value="grud">Грудь+Бицепс</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" onclick="window.addWorkout()" style="width: 100%;">➕ Добавить тренировку</button>
+                    
+                    <h4 style="margin: 20px 0 10px;">📋 Запланировано:</h4>
+                    ${state.schedule.sort((a,b) => a.date.localeCompare(b.date)).map((w, i) => `
+                        <div class="workout-item">
+                            <div>
+                                <span>${w.date}</span>
+                                <span class="workout-type type-${w.type}">${w.description}</span>
+                            </div>
+                            <button onclick="window.removeWorkout(${i})" class="btn-danger" style="padding: 4px 8px;">🗑️</button>
+                        </div>
+                    `).join('')}
+                    ${state.schedule.length === 0 ? '<p style="color: #8b949e;">Нет запланированных тренировок</p>' : ''}
+                </div>
+            `;
+        } else {
+            html += `<p style="color: #8b949e; text-align: center; margin-top: 20px;">🔒 Редактирование только для ${state.profile.name}</p>`;
+        }
+        
+        return html;
+    }
+
+    function renderBattleTab() {
+        const my = state.profile.progress;
+        const pt = state.partner.progress;
+        const leader = my > pt ? state.profile.name : pt > my ? state.partner.name : 'Ничья';
+        
+        return `
+            <div style="background: #161b22; border-radius: 16px; padding: 16px;">
+                <h2>⚔️ БАТТЛ</h2>
+                <div style="background: #0d1117; padding: 12px; border-radius: 10px; margin: 12px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>${state.profile.name}</span>
+                        <span style="color: #3fb950; font-size: 24px; font-weight: bold;">+${my.toFixed(1)} кг</span>
+                    </div>
+                </div>
+                <div style="background: #0d1117; padding: 12px; border-radius: 10px; margin: 12px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>${state.partner.name}</span>
+                        <span style="color: #f0883e; font-size: 24px; font-weight: bold;">+${pt.toFixed(1)} кг</span>
+                    </div>
+                </div>
+                <div style="text-align: center; padding: 20px; background: #0d1117; border-radius: 12px; margin-top: 20px;">
+                    <h3>🏆 ${leader} ${leader === 'Ничья' ? '' : 'лидирует!'}</h3>
+                    <p style="font-size: 18px; margin-top: 8px;">Разница: ${Math.abs(my - pt).toFixed(1)} кг</p>
+                </div>
+                <h3 style="margin: 20px 0 10px;">📊 История</h3>
+                ${state.history.filter(h => h.completed).slice(-5).reverse().map(h => `
+                    <div style="padding: 8px; background: #0d1117; border-radius: 8px; margin-top: 8px;">
+                        ${h.date} - ${h.player === 'me' ? state.profile.name : state.partner.name}: ${h.completed ? '✅' : '❌'}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function renderSettingsTab() {
+        return `
+            <div style="background: #161b22; border-radius: 16px; padding: 16px;">
+                <h2>⚙️ Настройки</h2>
+                
+                <h3 style="margin: 20px 0 10px;">${state.profile.name} ${state.profile.isAdmin ? '👑' : ''}</h3>
+                <p style="color: #8b949e;">PIN (4 цифры):</p>
+                <input type="password" id="pin1" class="settings-input" placeholder="****" maxlength="4" value="${state.profile.pin}">
+                
+                <h3 style="margin: 20px 0 10px;">${state.partner.name}</h3>
+                <p style="color: #8b949e;">PIN (4 цифры):</p>
+                <input type="password" id="pin2" class="settings-input" placeholder="****" maxlength="4" value="${state.partner.pin}">
+                
+                <button class="btn-primary" onclick="window.savePins()" style="width: 100%; margin: 10px 0;">💾 Сохранить PIN-коды</button>
+                
+                <h3 style="margin: 20px 0 10px;">☁️ GitHub</h3>
+                <p style="color: #8b949e;">Token:</p>
+                <input type="password" id="tokenInput" class="settings-input" placeholder="ghp_..." value="${GITHUB_TOKEN}">
+                <button class="btn-primary" onclick="window.saveToken()" style="width: 100%;">💾 Сохранить токен</button>
+                
+                <div style="margin-top: 20px; padding: 12px; background: #1a2329; border-radius: 10px;">
+                    <p>🔐 Ввел PIN один раз — активен до выхода</p>
+                    <p>👑 ${state.profile.name} — администратор (может менять календарь)</p>
+                </div>
+            </div>
+        `;
+    }
+
+    window.switchTab = (tab) => { currentTab = tab; render(); };
+    window.switchPlayer = (p) => switchPlayer(p);
+    window.finishTraining = (isDone) => finishTraining(isDone);
+    
+    window.prevMonth = () => { calendarMonth.setMonth(calendarMonth.getMonth() - 1); render(); };
+    window.nextMonth = () => { calendarMonth.setMonth(calendarMonth.getMonth() + 1); render(); };
+    
+    window.selectDate = (dateStr) => {
+        state.selectedDate = dateStr;
+        currentTab = 'training';
+        render();
+    };
+    
+    window.addWorkout = () => {
+        const date = document.getElementById('newWorkoutDate')?.value;
+        const type = document.getElementById('newWorkoutType')?.value;
+        const descriptions = { spina: 'Спина+Трицепс', plechi: 'Плечи+Пресс', grud: 'Грудь+Бицепс' };
+        if (date && type) {
+            addToSchedule(date, type, descriptions[type]);
+        }
+    };
+    
+    window.removeWorkout = (index) => removeFromSchedule(index);
+    
+    window.editProfile = () => {
+        const n = prompt('Ник:', state.profile.name);
+        if (n) { state.profile.name = n; saveToLocal(); render(); }
+    };
+    window.editPartner = () => {
+        const n = prompt('Ник соперника:', state.partner.name);
+        if (n) { state.partner.name = n; saveToLocal(); render(); }
+    };
+    window.setBank = () => {
+        const b = prompt('Сумма в банке:', state.bank);
+        if (b !== null && !isNaN(parseFloat(b))) { state.bank = parseFloat(b); saveToLocal(); render(); }
+    };
+    window.savePins = () => {
+        const pin1 = document.getElementById('pin1')?.value || '';
+        const pin2 = document.getElementById('pin2')?.value || '';
+        state.profile.pin = pin1;
+        state.partner.pin = pin2;
+        saveToLocal();
+        alert('PIN-коды сохранены!');
+    };
+    window.saveToken = () => {
+        const token = document.getElementById('tokenInput')?.value.trim() || '';
+        if (token) {
+            GITHUB_TOKEN = token;
+            localStorage.setItem('gym_github_token', token);
+            alert('Токен сохранён!');
+        }
+    };
+    
+    window.addExercise = (group) => {
+        const name = prompt('Название:');
+        if (name) {
+            state.currentExercises.push({ id: Date.now() + Math.random() + '', group, name, sets: [{ weight: 20, reps: 15 }] });
+            render();
+        }
+    };
+    window.deleteEx = (id) => {
+        state.currentExercises = state.currentExercises.filter(e => e.id !== id);
+        render();
+    };
+    window.addSet = (id) => {
+        const ex = state.currentExercises.find(e => e.id === id);
+        if (ex) { ex.sets.push({ weight: 20, reps: 12 }); render(); }
+    };
+    window.removeSet = (id, idx) => {
+        const ex = state.currentExercises.find(e => e.id === id);
+        if (ex && ex.sets.length > 1) { ex.sets.splice(idx, 1); render(); }
+    };
+    window.updateSet = (id, idx, field, val) => {
+        const ex = state.currentExercises.find(e => e.id === id);
+        if (ex && ex.sets[idx]) { ex.sets[idx][field] = parseFloat(val) || 0; }
+    };
+    window.updateExName = (id, name) => {
+        const ex = state.currentExercises.find(e => e.id === id);
+        if (ex) ex.name = name;
+    };
+
+    loadFromLocal();
+    initDemoData();
+    render();
+})();
+</script>
+</body>
+  </html>
