@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gym Battle Pro v0.5.4</title>
+    <title>Gym Battle Pro v0.5.5</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -21,7 +21,7 @@
             --success: #238636;
             --success-light: #2ea043;
             --danger: #da3633;
-            --danger-light: #f85149;
+            --danger-light: #85149;
             --warning: #9e6a03;
             --warning-light: #d29922;
             --admin-badge: #9e6a03;
@@ -385,7 +385,7 @@
 <div id="app">Загрузка...</div>
 <script>
 (function() {
-    const APP_VERSION = '0.5.4-alpha';
+    const APP_VERSION = '0.5.5-alpha';
     const INVITE_CODE = 'ARVI-GYM-2026';
     const PAIR_PASSWORD = 'gym2026';
     const FIXED_NAMES = { admin: 'Арви', player2: 'Рейкин' };
@@ -507,6 +507,38 @@
         } catch(e) { return false; }
     }
 
+    // Загрузка данных из Gist и полная замена appState
+    async function loadStateFromGist(token, gistId) {
+        try {
+            const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+            if (!resp.ok) return false;
+            const gist = await resp.json();
+            const content = gist.files?.['gym_data.json']?.content;
+            if (!content) return false;
+            const cloud = JSON.parse(content);
+            appState.bank = cloud.bank || 0;
+            appState.history = cloud.history || [];
+            appState.schedule = cloud.schedule || [];
+            if (!pairData) pairData = {};
+            pairData.admin = pairData.admin || { progress:0, status:'home' };
+            pairData.player2 = pairData.player2 || { progress:0, status:'home' };
+            if (cloud.profile) {
+                pairData.admin.progress = cloud.profile.progress || 0;
+                pairData.admin.status = cloud.profile.status || 'home';
+            }
+            if (cloud.partner) {
+                pairData.player2.progress = cloud.partner.progress || 0;
+                pairData.player2.status = cloud.partner.status || 'home';
+            }
+            // Обновляем демо-данные, если упражнений нет
+            if (!appState.templates['Спина']?.length) initDemoData();
+            loadExercises();
+            return true;
+        } catch(e) { return false; }
+    }
+
     async function ensureGist(token, gistId) {
         try {
             const tokenValid = await verifyToken(token);
@@ -624,98 +656,60 @@
         
         const tokenValid = await verifyToken(githubToken);
         if (!tokenValid) {
-            alert('❌ Токен недействителен или не имеет права "gist".\n\nУбедитесь, что при создании токена вы поставили галочку "gist".');
+            alert('❌ Токен недействителен или не имеет права "gist".');
             return false;
         }
         
-        try {
-            const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
-                headers: { 'Authorization': `token ${githubToken}` }
-            });
-            if (!resp.ok) {
-                if (resp.status === 404) {
-                    alert('❌ Пара не найдена. Попросите админа сначала создать пару.');
-                } else {
-                    alert('❌ Ошибка доступа к облаку. Проверьте токен.');
-                }
-                return false;
-            }
-            
-            const gist = await resp.json();
-            const content = gist.files?.['gym_data.json']?.content;
-            if (!content) {
-                alert('❌ Gist повреждён. Попросите админа синхронизировать пару.');
-                return false;
-            }
-            
-            const cloudState = JSON.parse(content);
-            appState.bank = cloudState.bank || 0;
-            appState.history = cloudState.history || [];
-            appState.schedule = cloudState.schedule || [];
-            
-            // Проверяем, есть ли уже локальная пара
-            const hasLocalPair = loadPairFromStorage();
-            
-            if (!hasLocalPair) {
-                // Первый вход на этом устройстве — создаём новую пару
-                pairData = {
-                    pairId: 'pair_' + Date.now(),
-                    inviteCode: INVITE_CODE,
-                    pairPassword: PAIR_PASSWORD,
-                    githubToken: githubToken,
-                    gistId: gistId,
-                    admin: {
-                        deviceId: null,
-                        name: FIXED_NAMES.admin,
-                        pin: null, // PIN админа не храним на устройстве друга
-                        progress: cloudState.profile?.progress || 0,
-                        status: cloudState.profile?.status || 'home'
-                    },
-                    player2: {
-                        deviceId: deviceId,
-                        name: FIXED_NAMES.player2,
-                        pin: playerPin,
-                        progress: cloudState.partner?.progress || 0,
-                        status: cloudState.partner?.status || 'home'
-                    },
-                    data: null
-                };
-            } else {
-                // Локальная пара уже существует (например, админ уже заходил) — обновляем только player2
-                pairData.githubToken = githubToken;
-                pairData.gistId = gistId;
-                pairData.player2 = {
+        // Загружаем актуальное состояние из Gist
+        const loaded = await loadStateFromGist(githubToken, gistId);
+        if (!loaded) {
+            alert('❌ Не удалось загрузить данные пары. Проверьте токен и интернет.');
+            return false;
+        }
+        
+        // Создаём или обновляем локальную пару
+        const hasLocalPair = loadPairFromStorage();
+        if (!hasLocalPair) {
+            pairData = {
+                pairId: 'pair_' + Date.now(),
+                inviteCode: INVITE_CODE,
+                pairPassword: PAIR_PASSWORD,
+                githubToken, gistId,
+                admin: {
+                    deviceId: null,
+                    name: FIXED_NAMES.admin,
+                    pin: null,
+                    progress: pairData?.admin?.progress || 0,
+                    status: pairData?.admin?.status || 'home'
+                },
+                player2: {
                     deviceId: deviceId,
                     name: FIXED_NAMES.player2,
                     pin: playerPin,
-                    progress: cloudState.partner?.progress || 0,
-                    status: cloudState.partner?.status || 'home'
-                };
-                // Оставляем admin как есть (с его PIN)
-            }
-            
-            // Обновляем прогресс из облака
-            if (cloudState.profile) {
-                pairData.admin.progress = cloudState.profile.progress || 0;
-                pairData.admin.status = cloudState.profile.status || 'home';
-            }
-            if (cloudState.partner) {
-                pairData.player2.progress = cloudState.partner.progress || 0;
-                pairData.player2.status = cloudState.partner.status || 'home';
-            }
-            
-            pairData.data = appState;
-            savePairToStorage();
-            
-            currentPlayer = 'player2';
-            isAuthenticated = true;
-            saveSession();
-            loadExercises();
-            return true;
-        } catch(e) {
-            alert('❌ Ошибка сети: ' + e.message);
-            return false;
+                    progress: pairData?.player2?.progress || 0,
+                    status: pairData?.player2?.status || 'home'
+                },
+                data: null
+            };
+        } else {
+            pairData.githubToken = githubToken;
+            pairData.gistId = gistId;
+            pairData.player2 = {
+                deviceId: deviceId,
+                name: FIXED_NAMES.player2,
+                pin: playerPin,
+                progress: pairData.player2?.progress || 0,
+                status: pairData.player2?.status || 'home'
+            };
         }
+        pairData.data = appState;
+        savePairToStorage();
+        
+        currentPlayer = 'player2';
+        isAuthenticated = true;
+        saveSession();
+        loadExercises();
+        return true;
     }
 
     function loginWithPin(pin) {
@@ -781,7 +775,7 @@
                     <button class="start-btn btn-primary" onclick="window.createPairAction()">Создать пару</button>
                     <div class="divider"><span>или</span></div>
                     <button class="start-btn btn-warning" onclick="window.showJoinScreen()">У меня есть код приглашения</button>
-                    <div class="hint-text">Вы — ${FIXED_NAMES.admin} (администратор)<br>Пароль пары: ${PAIR_PASSWORD}<br>⚠️ Токен должен иметь право "gist"</div>
+                    <div class="hint-text">Вы — ${FIXED_NAMES.admin} (администратор)<br>Пароль пары: ${PAIR_PASSWORD}</div>
                     <div class="version-badge" style="margin-top:20px;">v${APP_VERSION}</div>
                 </div>
             `;
@@ -877,10 +871,16 @@
         if (await joinPair(code, pin, token)) render();
     };
     
-    window.loginAction = () => {
+    window.loginAction = async () => {
         const pin = document.getElementById('loginPin')?.value.trim();
         if (!pin) { alert('Введите PIN!'); return; }
-        if (loginWithPin(pin)) render();
+        if (!loginWithPin(pin)) return;
+        // После успешного входа загружаем свежие данные из Gist
+        if (pairData) {
+            await loadStateFromGist(pairData.githubToken, pairData.gistId);
+            savePairToStorage();
+        }
+        render();
     };
 
     function renderMainApp() {
@@ -1117,7 +1117,7 @@
     window.switchTab = (tab) => { currentTab = tab; render(); };
     window.setStatus = (status) => updateStatus(status);
     window.finishTraining = (isDone) => finishTraining(isDone);
-    window.syncNow = async () => { if (pairData) { await ensureGist(pairData.githubToken, pairData.gistId); render(); alert('✅ Синхронизировано!'); } };
+    window.syncNow = async () => { if (pairData) { await loadStateFromGist(pairData.githubToken, pairData.gistId); savePairToStorage(); render(); alert('✅ Данные синхронизированы!'); } };
     window.viewPartnerHistory = () => { viewingPartnerHistory = true; render(); };
     window.backFromHistory = () => { viewingPartnerHistory = false; render(); };
     window.toggleHistory = (id) => { expandedHistory[id] = !expandedHistory[id]; render(); };
