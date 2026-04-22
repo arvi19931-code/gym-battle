@@ -476,9 +476,14 @@
         }
         
         if (confirm('Удалить эту запись из истории?')) {
-            state.history = state.history.filter(h => h.id !== historyId);
-            saveToLocal();
-            render();
+            const idToDelete = parseFloat(historyId);
+            const beforeLength = state.history.length;
+            state.history = state.history.filter(h => h.id !== idToDelete);
+            
+            if (state.history.length < beforeLength) {
+                saveToLocal();
+                render();
+            }
         }
     }
 
@@ -506,7 +511,6 @@
         return state.schedule.find(w => w.date === dateStr);
     }
 
-    // Группировка истории по месяцам
     function groupHistoryByMonth(historyItems) {
         const groups = {};
         historyItems.forEach(h => {
@@ -597,7 +601,7 @@
                 const monthName = MONTH_NAMES[group.month];
                 html += `<div class="month-header">${monthName} ${group.year} (${group.items.length} тренировок)</div>`;
                 
-                group.items.forEach((h, index) => {
+                group.items.forEach((h) => {
                     const historyId = `partner_hist_${h.id}`;
                     const isExpanded = expandedHistory[historyId] || false;
                     const statusIcon = h.completed ? '✅' : '❌';
