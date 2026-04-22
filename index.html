@@ -87,6 +87,7 @@
         .btn-primary { background: #238636; border-color: #2ea043; color: white; }
         .btn-danger { background: #da3633; border-color: #f85149; color: white; }
         .btn-warning { background: #9e6a03; border-color: #d29922; color: white; }
+        .btn-sm { padding: 4px 8px; font-size: 12px; }
         .settings-input {
             width: 100%;
             background: #0d1117;
@@ -96,7 +97,6 @@
             border-radius: 10px;
             margin: 8px 0;
         }
-        .who-trained { display: flex; gap: 10px; margin: 15px 0; }
         .who-btn {
             flex: 1;
             padding: 12px;
@@ -225,6 +225,25 @@
             color: #f0883e;
             margin-bottom: 12px;
         }
+        .month-header {
+            background: #21262d;
+            padding: 10px 16px;
+            border-radius: 12px;
+            margin: 16px 0 8px;
+            font-weight: bold;
+            color: #f0883e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .delete-history-btn {
+            background: transparent;
+            border: 1px solid #f85149;
+            color: #f85149;
+            padding: 2px 8px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
@@ -253,13 +272,15 @@
     let currentTab = 'training';
     let calendarMonth = new Date();
     let expandedHistory = {};
-    let viewingPartnerHistory = false; // Режим просмотра истории соперника
+    let viewingPartnerHistory = false;
     
     const DAY_CONFIG = [
         { groups: ['Спина', 'Трицепс'], name: 'СПИНА + ТРИЦЕПС', type: 'spina' },
         { groups: ['Плечи', 'Пресс'], name: 'ПЛЕЧИ + ПРЕСС', type: 'plechi' },
         { groups: ['Грудь', 'Бицепс'], name: 'ГРУДЬ + БИЦЕПС', type: 'grud' }
     ];
+
+    const MONTH_NAMES = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 
     function loadFromLocal() {
         const saved = localStorage.getItem('gym_pro_backup');
@@ -429,6 +450,7 @@
         }
         
         state.history.push({
+            id: Date.now() + Math.random(),
             date: state.selectedDate,
             dayIndex: state.currentDayIndex,
             dayName: DAY_CONFIG[state.currentDayIndex].name,
@@ -445,6 +467,19 @@
         loadExercises();
         saveToLocal();
         render();
+    }
+
+    function deleteHistoryEntry(historyId) {
+        if (!isAdmin()) {
+            alert('Только администратор может удалять записи!');
+            return;
+        }
+        
+        if (confirm('Удалить эту запись из истории?')) {
+            state.history = state.history.filter(h => h.id !== historyId);
+            saveToLocal();
+            render();
+        }
     }
 
     function addToSchedule(date, type, description) {
@@ -471,6 +506,28 @@
         return state.schedule.find(w => w.date === dateStr);
     }
 
+    // Группировка истории по месяцам
+    function groupHistoryByMonth(historyItems) {
+        const groups = {};
+        historyItems.forEach(h => {
+            const date = new Date(h.date);
+            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+            if (!groups[monthKey]) {
+                groups[monthKey] = {
+                    year: date.getFullYear(),
+                    month: date.getMonth(),
+                    items: []
+                };
+            }
+            groups[monthKey].items.push(h);
+        });
+        
+        return Object.values(groups).sort((a, b) => {
+            if (a.year !== b.year) return b.year - a.year;
+            return b.month - a.month;
+        });
+    }
+
     function render() {
         const app = document.getElementById('app');
         
@@ -493,7 +550,7 @@
                     </div>
                     <div class="profile-status">📈 +${state.partner.progress.toFixed(1)} кг 👁️</div>
                 </div>
-                ${unlockedPlayer ? `<button onclick="window.logout()" class="logout-btn" style="margin-left: auto;">Выйти</button>` : ''}
+                ${unlockedPlayer ? `<button onclick="window.logout()" class="btn-sm" style="margin-left: auto; background: transparent; border-color: #f85149; color: #f85149;">Выйти</button>` : ''}
             </div>
             
             <div class="tabs">
@@ -534,47 +591,54 @@
         if (partnerHistory.length === 0) {
             html += `<p style="color: #8b949e; text-align: center; padding: 20px;">${state.partner.name} ещё не тренировался</p>`;
         } else {
-            partnerHistory.forEach((h, index) => {
-                const historyId = `partner_hist_${index}`;
-                const isExpanded = expandedHistory[historyId] || false;
-                const statusIcon = h.completed ? '✅' : '❌';
+            const grouped = groupHistoryByMonth(partnerHistory);
+            
+            grouped.forEach(group => {
+                const monthName = MONTH_NAMES[group.month];
+                html += `<div class="month-header">${monthName} ${group.year} (${group.items.length} тренировок)</div>`;
                 
-                html += `
-                    <div class="history-item">
-                        <div class="history-header">
-                            <div>
-                                <span class="history-date">${h.date}</span>
-                                <span style="margin-left: 10px;">${h.dayName || DAY_CONFIG[h.dayIndex]?.name || 'Тренировка'}</span>
-                            </div>
-                            <span>${statusIcon}</span>
-                        </div>
-                        <div class="history-player">
-                            ${h.completed ? `+${h.progress} кг` : 'пропуск'}
-                        </div>
-                        
-                        <button class="expand-btn" onclick="window.toggleHistory('${historyId}')" style="margin-top: 8px; width: 100%;">
-                            ${isExpanded ? '▲ Скрыть' : '▼ Показать упражнения'}
-                        </button>
-                `;
-                
-                if (isExpanded && h.exercises) {
-                    html += `<div style="margin-top: 12px;">`;
-                    h.exercises.forEach(ex => {
-                        html += `
-                            <div class="history-exercise">
-                                <div class="history-ex-name">${ex.name} (${ex.group})</div>
-                                <div class="history-sets">
-                                    ${ex.sets.map((s, i) => `
-                                        <span class="history-set">${i+1}: ${s.weight} кг × ${s.reps}</span>
-                                    `).join('')}
+                group.items.forEach((h, index) => {
+                    const historyId = `partner_hist_${h.id}`;
+                    const isExpanded = expandedHistory[historyId] || false;
+                    const statusIcon = h.completed ? '✅' : '❌';
+                    
+                    html += `
+                        <div class="history-item">
+                            <div class="history-header">
+                                <div>
+                                    <span class="history-date">${h.date}</span>
+                                    <span style="margin-left: 10px;">${h.dayName || DAY_CONFIG[h.dayIndex]?.name || 'Тренировка'}</span>
                                 </div>
+                                <span>${statusIcon}</span>
                             </div>
-                        `;
-                    });
+                            <div class="history-player">
+                                ${h.completed ? `+${h.progress} кг` : 'пропуск'}
+                            </div>
+                            
+                            <button class="expand-btn" onclick="window.toggleHistory('${historyId}')" style="margin-top: 8px; width: 100%;">
+                                ${isExpanded ? '▲ Скрыть' : '▼ Показать упражнения'}
+                            </button>
+                    `;
+                    
+                    if (isExpanded && h.exercises) {
+                        html += `<div style="margin-top: 12px;">`;
+                        h.exercises.forEach(ex => {
+                            html += `
+                                <div class="history-exercise">
+                                    <div class="history-ex-name">${ex.name} (${ex.group})</div>
+                                    <div class="history-sets">
+                                        ${ex.sets.map((s, i) => `
+                                            <span class="history-set">${i+1}: ${s.weight} кг × ${s.reps}</span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
+                    }
+                    
                     html += `</div>`;
-                }
-                
-                html += `</div>`;
+                });
             });
         }
         
@@ -763,7 +827,10 @@
     function renderHistoryTab() {
         let html = `
             <div style="background: #161b22; border-radius: 16px; padding: 16px;">
-                <h2>📜 Вся история</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h2>📜 Вся история</h2>
+                    ${isAdmin() ? '<span style="color: #9e6a03; font-size: 12px;">👑 Режим админа</span>' : ''}
+                </div>
         `;
         
         const allHistory = [...state.history].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -771,47 +838,57 @@
         if (allHistory.length === 0) {
             html += `<p style="color: #8b949e; text-align: center; padding: 20px;">История пуста</p>`;
         } else {
-            allHistory.forEach((h, index) => {
-                const historyId = `all_hist_${index}`;
-                const isExpanded = expandedHistory[historyId] || false;
-                const statusIcon = h.completed ? '✅' : '❌';
+            const grouped = groupHistoryByMonth(allHistory);
+            
+            grouped.forEach(group => {
+                const monthName = MONTH_NAMES[group.month];
+                html += `<div class="month-header">${monthName} ${group.year} (${group.items.length} тренировок)</div>`;
                 
-                html += `
-                    <div class="history-item">
-                        <div class="history-header">
-                            <div>
-                                <span class="history-date">${h.date}</span>
-                                <span style="margin-left: 10px;">${h.dayName || DAY_CONFIG[h.dayIndex]?.name || 'Тренировка'}</span>
-                            </div>
-                            <span>${statusIcon}</span>
-                        </div>
-                        <div class="history-player">
-                            ${h.playerName} • ${h.completed ? `+${h.progress} кг` : 'пропуск'}
-                        </div>
-                        
-                        <button class="expand-btn" onclick="window.toggleHistory('${historyId}')" style="margin-top: 8px; width: 100%;">
-                            ${isExpanded ? '▲ Скрыть' : '▼ Показать упражнения'}
-                        </button>
-                `;
-                
-                if (isExpanded && h.exercises) {
-                    html += `<div style="margin-top: 12px;">`;
-                    h.exercises.forEach(ex => {
-                        html += `
-                            <div class="history-exercise">
-                                <div class="history-ex-name">${ex.name} (${ex.group})</div>
-                                <div class="history-sets">
-                                    ${ex.sets.map((s, i) => `
-                                        <span class="history-set">${i+1}: ${s.weight} кг × ${s.reps}</span>
-                                    `).join('')}
+                group.items.forEach((h) => {
+                    const historyId = `all_hist_${h.id}`;
+                    const isExpanded = expandedHistory[historyId] || false;
+                    const statusIcon = h.completed ? '✅' : '❌';
+                    
+                    html += `
+                        <div class="history-item">
+                            <div class="history-header">
+                                <div>
+                                    <span class="history-date">${h.date}</span>
+                                    <span style="margin-left: 10px;">${h.dayName || DAY_CONFIG[h.dayIndex]?.name || 'Тренировка'}</span>
+                                </div>
+                                <div>
+                                    <span>${statusIcon}</span>
+                                    ${isAdmin() ? `<button onclick="window.deleteHistoryEntry('${h.id}')" class="delete-history-btn">🗑️</button>` : ''}
                                 </div>
                             </div>
-                        `;
-                    });
+                            <div class="history-player">
+                                ${h.playerName} • ${h.completed ? `+${h.progress} кг` : 'пропуск'}
+                            </div>
+                            
+                            <button class="expand-btn" onclick="window.toggleHistory('${historyId}')" style="margin-top: 8px; width: 100%;">
+                                ${isExpanded ? '▲ Скрыть' : '▼ Показать упражнения'}
+                            </button>
+                    `;
+                    
+                    if (isExpanded && h.exercises) {
+                        html += `<div style="margin-top: 12px;">`;
+                        h.exercises.forEach(ex => {
+                            html += `
+                                <div class="history-exercise">
+                                    <div class="history-ex-name">${ex.name} (${ex.group})</div>
+                                    <div class="history-sets">
+                                        ${ex.sets.map((s, i) => `
+                                            <span class="history-set">${i+1}: ${s.weight} кг × ${s.reps}</span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
+                    }
+                    
                     html += `</div>`;
-                }
-                
-                html += `</div>`;
+                });
             });
         }
         
@@ -893,7 +970,7 @@
                 <div style="margin-top: 20px; padding: 12px; background: #1a2329; border-radius: 10px;">
                     <p>👤 Выберите профиль выше, чтобы тренироваться</p>
                     <p>👁️ Нажмите на ${state.partner.name} в шапке — посмотрите его историю</p>
-                    <p>👑 ${state.profile.name} — администратор</p>
+                    <p>👑 ${state.profile.name} — администратор (может удалять записи)</p>
                 </div>
             </div>
         `;
@@ -929,6 +1006,8 @@
         expandedHistory[historyId] = !expandedHistory[historyId];
         render();
     };
+    
+    window.deleteHistoryEntry = (historyId) => deleteHistoryEntry(historyId);
     
     window.addWorkout = () => {
         const date = document.getElementById('newWorkoutDate')?.value;
@@ -1004,4 +1083,4 @@
 })();
 </script>
 </body>
-    </html>
+</html>
