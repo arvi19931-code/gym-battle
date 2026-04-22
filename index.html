@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gym Battle Pro v0.1.0</title>
+    <title>Gym Battle Pro v0.1.1</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -278,7 +278,7 @@
 <script>
 (function() {
     // ---------- ВЕРСИЯ ----------
-    const APP_VERSION = '0.1.0-alpha';
+    const APP_VERSION = '0.1.1-alpha';
     
     const GIST_ID = 'd03a67ce07bf4d0ef42cc31824b7f396';
     let GITHUB_TOKEN = '';
@@ -315,6 +315,17 @@
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
+                
+                // Миграция: добавляем id старым записям, если их нет
+                if (parsed.history) {
+                    parsed.history = parsed.history.map(h => {
+                        if (!h.id) {
+                            h.id = Date.now() + Math.random() + Math.random();
+                        }
+                        return h;
+                    });
+                }
+                
                 state = { ...state, ...parsed };
                 if (!state.profile.pin) state.profile.pin = '';
                 if (!state.partner.pin) state.partner.pin = '';
@@ -504,10 +515,23 @@
         }
         
         if (confirm('Удалить эту запись из истории?')) {
-            const idToDelete = parseFloat(historyId);
-            state.history = state.history.filter(h => h.id !== idToDelete);
-            saveToLocal();
-            render();
+            const beforeLength = state.history.length;
+            
+            // Пробуем удалить по id (строковое сравнение надёжнее)
+            state.history = state.history.filter(h => String(h.id) !== String(historyId));
+            
+            if (state.history.length < beforeLength) {
+                saveToLocal();
+                render();
+            } else {
+                // Если не нашли по id, пробуем удалить по индексу
+                const index = parseInt(historyId);
+                if (!isNaN(index) && index >= 0 && index < state.history.length) {
+                    state.history.splice(index, 1);
+                    saveToLocal();
+                    render();
+                }
+            }
         }
     }
 
@@ -872,10 +896,11 @@
                 const monthName = MONTH_NAMES[group.month];
                 html += `<div class="month-header">${monthName} ${group.year} (${group.items.length} тренировок)</div>`;
                 
-                group.items.forEach((h) => {
-                    const historyId = `all_hist_${h.id}`;
+                group.items.forEach((h, idx) => {
+                    const historyId = `all_hist_${h.id || idx}`;
                     const isExpanded = expandedHistory[historyId] || false;
                     const statusIcon = h.completed ? '✅' : '❌';
+                    const deleteId = h.id !== undefined ? h.id : `index_${idx}`;
                     
                     html += `
                         <div class="history-item">
@@ -886,7 +911,7 @@
                                 </div>
                                 <div>
                                     <span>${statusIcon}</span>
-                                    ${isAdmin() ? `<button onclick="window.deleteHistoryEntry('${h.id}')" class="delete-history-btn">🗑️</button>` : ''}
+                                    ${isAdmin() ? `<button onclick="window.deleteHistoryEntry('${deleteId}', ${idx})" class="delete-history-btn">🗑️</button>` : ''}
                                 </div>
                             </div>
                             <div class="history-player">
@@ -1050,7 +1075,27 @@
         render();
     };
     
-    window.deleteHistoryEntry = (historyId) => deleteHistoryEntry(historyId);
+    window.deleteHistoryEntry = (historyId, fallbackIndex) => {
+        if (!isAdmin()) {
+            alert('Только администратор может удалять записи!');
+            return;
+        }
+        
+        if (confirm('Удалить эту запись из истории?')) {
+            const beforeLength = state.history.length;
+            
+            // Пробуем удалить по id
+            state.history = state.history.filter(h => String(h.id) !== String(historyId));
+            
+            // Если не удалилось, пробуем по индексу
+            if (state.history.length === beforeLength && fallbackIndex !== undefined) {
+                state.history.splice(fallbackIndex, 1);
+            }
+            
+            saveToLocal();
+            render();
+        }
+    };
     
     window.addWorkout = () => {
         const date = document.getElementById('newWorkoutDate')?.value;
