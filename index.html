@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gym Battle Pro v0.1.1</title>
+    <title>Gym Battle Pro v0.2.0</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -269,6 +269,35 @@
             font-weight: bold;
             margin-top: 8px;
         }
+        .admin-panel {
+            margin-top: 20px;
+            padding: 16px;
+            background: #1a2329;
+            border-radius: 12px;
+            border: 1px solid #9e6a03;
+        }
+        .admin-title {
+            color: #d29922;
+            font-weight: bold;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .progress-edit {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .progress-edit input {
+            flex: 1;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: white;
+            padding: 8px;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -278,7 +307,7 @@
 <script>
 (function() {
     // ---------- ВЕРСИЯ ----------
-    const APP_VERSION = '0.1.1-alpha';
+    const APP_VERSION = '0.2.0-alpha';
     
     const GIST_ID = 'd03a67ce07bf4d0ef42cc31824b7f396';
     let GITHUB_TOKEN = '';
@@ -316,12 +345,9 @@
             try {
                 const parsed = JSON.parse(saved);
                 
-                // Миграция: добавляем id старым записям, если их нет
                 if (parsed.history) {
                     parsed.history = parsed.history.map(h => {
-                        if (!h.id) {
-                            h.id = Date.now() + Math.random() + Math.random();
-                        }
+                        if (!h.id) h.id = Date.now() + Math.random() + Math.random();
                         return h;
                     });
                 }
@@ -508,7 +534,7 @@
         render();
     }
 
-    function deleteHistoryEntry(historyId) {
+    function deleteHistoryEntry(historyId, fallbackIndex) {
         if (!isAdmin()) {
             alert('Только администратор может удалять записи!');
             return;
@@ -516,23 +542,34 @@
         
         if (confirm('Удалить эту запись из истории?')) {
             const beforeLength = state.history.length;
-            
-            // Пробуем удалить по id (строковое сравнение надёжнее)
             state.history = state.history.filter(h => String(h.id) !== String(historyId));
             
-            if (state.history.length < beforeLength) {
-                saveToLocal();
-                render();
-            } else {
-                // Если не нашли по id, пробуем удалить по индексу
-                const index = parseInt(historyId);
-                if (!isNaN(index) && index >= 0 && index < state.history.length) {
-                    state.history.splice(index, 1);
-                    saveToLocal();
-                    render();
+            if (state.history.length === beforeLength && fallbackIndex !== undefined) {
+                state.history.splice(fallbackIndex, 1);
+            }
+            
+            // Пересчитываем прогресс на основе оставшейся истории
+            recalculateProgress();
+            saveToLocal();
+            render();
+        }
+    }
+
+    function recalculateProgress() {
+        // Сбрасываем прогресс
+        state.profile.progress = 0;
+        state.partner.progress = 0;
+        
+        // Пересчитываем на основе завершённых тренировок
+        state.history.forEach(h => {
+            if (h.completed) {
+                if (h.player === 'me') {
+                    state.profile.progress += h.progress || 2.5;
+                } else {
+                    state.partner.progress += h.progress || 2.5;
                 }
             }
-        }
+        });
     }
 
     function addToSchedule(date, type, description) {
@@ -957,7 +994,7 @@
         const myWorkouts = state.history.filter(h => h.player === 'me' && h.completed).length;
         const partnerWorkouts = state.history.filter(h => h.player === 'partner' && h.completed).length;
         
-        return `
+        let html = `
             <div style="background: #161b22; border-radius: 16px; padding: 16px;">
                 <h2>⚔️ БАТТЛ</h2>
                 
@@ -985,8 +1022,42 @@
                     <h3>🏆 ${leader} ${leader === 'Ничья' ? '' : 'лидирует!'}</h3>
                     <p style="font-size: 18px; margin-top: 8px;">Разница: ${Math.abs(my - pt).toFixed(1)} кг</p>
                 </div>
-            </div>
         `;
+        
+        // Админ-панель для редактирования прогресса
+        if (isAdmin()) {
+            html += `
+                <div class="admin-panel">
+                    <div class="admin-title">
+                        <span>👑 Админ-панель</span>
+                    </div>
+                    
+                    <div class="progress-edit">
+                        <span style="min-width: 80px;">${state.profile.name}:</span>
+                        <input type="number" id="editProgress1" value="${my.toFixed(1)}" step="0.5" style="flex: 1;">
+                        <button onclick="window.updateProgress('me')" class="btn-sm btn-primary">✓</button>
+                    </div>
+                    
+                    <div class="progress-edit">
+                        <span style="min-width: 80px;">${state.partner.name}:</span>
+                        <input type="number" id="editProgress2" value="${pt.toFixed(1)}" step="0.5" style="flex: 1;">
+                        <button onclick="window.updateProgress('partner')" class="btn-sm btn-primary">✓</button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px; margin-top: 16px;">
+                        <button onclick="window.recalculateProgress()" class="btn-warning" style="flex: 1;">🔄 Пересчитать</button>
+                        <button onclick="window.resetAllProgress()" class="btn-danger" style="flex: 1;">⚠️ Сбросить всё</button>
+                    </div>
+                    <p style="color: #8b949e; font-size: 11px; margin-top: 8px; text-align: center;">
+                        Пересчитать — восстановит прогресс из истории<br>
+                        Сбросить — обнулит прогресс обоих игроков
+                    </p>
+                </div>
+            `;
+        }
+        
+        html += `</div>`;
+        return html;
     }
 
     function renderSettingsTab() {
@@ -1023,7 +1094,7 @@
                 <div style="margin-top: 20px; padding: 12px; background: #1a2329; border-radius: 10px;">
                     <p>👤 Выберите профиль выше, чтобы тренироваться</p>
                     <p>👁️ Нажмите на ${state.partner.name} в шапке — посмотрите его историю</p>
-                    <p>👑 ${state.profile.name} — администратор (может удалять записи)</p>
+                    <p>👑 ${state.profile.name} — администратор</p>
                 </div>
                 
                 <div class="about-section">
@@ -1083,15 +1154,60 @@
         
         if (confirm('Удалить эту запись из истории?')) {
             const beforeLength = state.history.length;
-            
-            // Пробуем удалить по id
             state.history = state.history.filter(h => String(h.id) !== String(historyId));
             
-            // Если не удалилось, пробуем по индексу
             if (state.history.length === beforeLength && fallbackIndex !== undefined) {
                 state.history.splice(fallbackIndex, 1);
             }
             
+            recalculateProgress();
+            saveToLocal();
+            render();
+        }
+    };
+    
+    window.updateProgress = (player) => {
+        if (!isAdmin()) {
+            alert('Только администратор!');
+            return;
+        }
+        
+        const input = player === 'me' ? document.getElementById('editProgress1') : document.getElementById('editProgress2');
+        const newValue = parseFloat(input.value);
+        
+        if (!isNaN(newValue)) {
+            if (player === 'me') {
+                state.profile.progress = newValue;
+            } else {
+                state.partner.progress = newValue;
+            }
+            saveToLocal();
+            render();
+        }
+    };
+    
+    window.recalculateProgress = () => {
+        if (!isAdmin()) {
+            alert('Только администратор!');
+            return;
+        }
+        
+        if (confirm('Пересчитать прогресс на основе истории?')) {
+            recalculateProgress();
+            saveToLocal();
+            render();
+        }
+    };
+    
+    window.resetAllProgress = () => {
+        if (!isAdmin()) {
+            alert('Только администратор!');
+            return;
+        }
+        
+        if (confirm('ВНИМАНИЕ! Полностью сбросить прогресс обоих игроков?')) {
+            state.profile.progress = 0;
+            state.partner.progress = 0;
             saveToLocal();
             render();
         }
