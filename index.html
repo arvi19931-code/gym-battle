@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gym Battle Pro</title>
+    <title>Gym Battle Pro v0.1.0</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -244,6 +244,31 @@
             font-size: 11px;
             margin-left: 8px;
         }
+        .version-badge {
+            background: #1a2329;
+            color: #8b949e;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        .about-section {
+            margin-top: 24px;
+            padding: 16px;
+            background: #1a2329;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .about-text {
+            color: #8b949e;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .about-author {
+            color: #f0883e;
+            font-weight: bold;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -252,6 +277,9 @@
 
 <script>
 (function() {
+    // ---------- ВЕРСИЯ ----------
+    const APP_VERSION = '0.1.0-alpha';
+    
     const GIST_ID = 'd03a67ce07bf4d0ef42cc31824b7f396';
     let GITHUB_TOKEN = '';
     
@@ -477,13 +505,9 @@
         
         if (confirm('Удалить эту запись из истории?')) {
             const idToDelete = parseFloat(historyId);
-            const beforeLength = state.history.length;
             state.history = state.history.filter(h => h.id !== idToDelete);
-            
-            if (state.history.length < beforeLength) {
-                saveToLocal();
-                render();
-            }
+            saveToLocal();
+            render();
         }
     }
 
@@ -975,6 +999,21 @@
                     <p>👤 Выберите профиль выше, чтобы тренироваться</p>
                     <p>👁️ Нажмите на ${state.partner.name} в шапке — посмотрите его историю</p>
                     <p>👑 ${state.profile.name} — администратор (может удалять записи)</p>
+                </div>
+                
+                <div class="about-section">
+                    <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: bold;">Gym Battle Pro</span>
+                        <span class="version-badge">v${APP_VERSION}</span>
+                    </div>
+                    <div class="about-text">
+                        Приложение сделано Арви для личного использования.<br>
+                        Никакого коммерческого смысла программа не преследует.<br>
+                        Тренируйтесь с умом и прогрессируйте! 💪
+                    </div>
+                    <div class="about-author">
+                        © 2026 Gym Battle
+                    </div>
                 </div>
             </div>
         `;
