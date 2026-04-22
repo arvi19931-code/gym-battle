@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gym Battle Pro v0.3.0</title>
+    <title>Gym Battle Pro v0.3.1</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -347,12 +347,12 @@
 <script>
 (function() {
     // ---------- ВЕРСИЯ ----------
-    const APP_VERSION = '0.3.0-alpha';
+    const APP_VERSION = '0.3.1-alpha';
     
     // Статусы
     const STATUSES = {
         home: { icon: '🏠', text: 'Дома' },
-        going: { icon: '🚗', text: 'Еду на тренировку' },
+        going: { icon: '🚗', text: 'Еду' },
         training: { icon: '🏋️', text: 'Тренируюсь' },
         skip: { icon: '😴', text: 'Пропущу' }
     };
@@ -439,33 +439,6 @@
         if (!GITHUB_TOKEN) return false;
         
         try {
-            // Сначала загружаем актуальные данные
-            const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
-            });
-            
-            if (response.ok) {
-                const gist = await response.json();
-                const content = gist.files['gym_data.json']?.content;
-                if (content) {
-                    const cloudState = JSON.parse(content);
-                    
-                    // Обновляем статусы из облака
-                    if (cloudState.profile?.status) {
-                        state.profile.status = cloudState.profile.status;
-                    }
-                    if (cloudState.partner?.status) {
-                        state.partner.status = cloudState.partner.status;
-                    }
-                    
-                    // Обновляем банк и прогресс
-                    state.bank = cloudState.bank || state.bank;
-                    state.profile.progress = cloudState.profile?.progress || state.profile.progress;
-                    state.partner.progress = cloudState.partner?.progress || state.partner.progress;
-                }
-            }
-            
-            // Сохраняем в Gist
             const cloudState = {
                 bank: state.bank,
                 profile: state.profile,
@@ -494,16 +467,60 @@
         }
     }
 
-    async function updateStatus(player, newStatus) {
-        if (player === 'me') {
+    async function loadFromGist() {
+        if (!GITHUB_TOKEN) return false;
+        
+        try {
+            const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+            });
+            
+            if (response.ok) {
+                const gist = await response.json();
+                const content = gist.files['gym_data.json']?.content;
+                if (content) {
+                    const cloudState = JSON.parse(content);
+                    
+                    if (cloudState.profile?.status !== undefined) {
+                        state.profile.status = cloudState.profile.status;
+                    }
+                    if (cloudState.partner?.status !== undefined) {
+                        state.partner.status = cloudState.partner.status;
+                    }
+                    
+                    if (cloudState.bank !== undefined) state.bank = cloudState.bank;
+                    if (cloudState.profile?.progress !== undefined) state.profile.progress = cloudState.profile.progress;
+                    if (cloudState.partner?.progress !== undefined) state.partner.progress = cloudState.partner.progress;
+                    
+                    saveToLocal();
+                    return true;
+                }
+            }
+            return false;
+        } catch(e) {
+            console.warn('Load error:', e);
+            return false;
+        }
+    }
+
+    async function updateStatus(newStatus) {
+        if (!unlockedPlayer) {
+            alert('Сначала войдите в профиль!');
+            return;
+        }
+        
+        // Обновляем локально
+        if (unlockedPlayer === 'me') {
             state.profile.status = newStatus;
         } else {
             state.partner.status = newStatus;
         }
         
         saveToLocal();
+        render(); // Сразу обновляем интерфейс
+        
+        // Синхронизируем с Gist
         await syncWithGist();
-        render();
     }
 
     function initDemoData() {
@@ -758,6 +775,7 @@
         
         const myStatus = STATUSES[state.profile.status] || STATUSES.home;
         const partnerStatus = STATUSES[state.partner.status] || STATUSES.home;
+        const currentStatus = unlockedPlayer === 'me' ? state.profile.status : (unlockedPlayer === 'partner' ? state.partner.status : 'home');
         
         let html = `
             <div class="profile-section">
@@ -793,10 +811,10 @@
                 
                 ${unlockedPlayer ? `
                     <div class="status-bar">
-                        <button class="status-btn ${state.profile.status === 'home' && unlockedPlayer === 'me' ? 'active' : ''}" onclick="window.setStatus('home')">🏠 Дома</button>
-                        <button class="status-btn ${state.profile.status === 'going' && unlockedPlayer === 'me' ? 'active' : ''}" onclick="window.setStatus('going')">🚗 Еду</button>
-                        <button class="status-btn ${state.profile.status === 'training' && unlockedPlayer === 'me' ? 'active' : ''}" onclick="window.setStatus('training')">🏋️ Тренируюсь</button>
-                        <button class="status-btn ${state.profile.status === 'skip' && unlockedPlayer === 'me' ? 'active' : ''}" onclick="window.setStatus('skip')">😴 Пропущу</button>
+                        <button class="status-btn ${currentStatus === 'home' ? 'active' : ''}" onclick="window.setStatus('home')">🏠 Дома</button>
+                        <button class="status-btn ${currentStatus === 'going' ? 'active' : ''}" onclick="window.setStatus('going')">🚗 Еду</button>
+                        <button class="status-btn ${currentStatus === 'training' ? 'active' : ''}" onclick="window.setStatus('training')">🏋️ Тренируюсь</button>
+                        <button class="status-btn ${currentStatus === 'skip' ? 'active' : ''}" onclick="window.setStatus('skip')">😴 Пропущу</button>
                     </div>
                 ` : ''}
             </div>
@@ -1284,26 +1302,18 @@
     window.switchPlayer = (p) => switchPlayer(p);
     window.finishTraining = (isDone) => finishTraining(isDone);
     
-    window.setStatus = async (status) => {
-        if (!unlockedPlayer) {
-            alert('Сначала войдите в профиль!');
-            return;
-        }
-        await updateStatus(unlockedPlayer, status);
-    };
+    window.setStatus = (status) => updateStatus(status);
     
     window.syncNow = async () => {
         if (!GITHUB_TOKEN) {
             alert('Сначала сохраните GitHub токен в настройках!');
             return;
         }
-        const success = await syncWithGist();
-        if (success) {
-            alert('✅ Данные синхронизированы!');
-            render();
-        } else {
-            alert('❌ Ошибка синхронизации');
-        }
+        
+        // Сначала загружаем из Gist
+        await loadFromGist();
+        render();
+        alert('✅ Данные синхронизированы!');
     };
     
     window.prevMonth = () => { calendarMonth.setMonth(calendarMonth.getMonth() - 1); render(); };
@@ -1470,7 +1480,12 @@
     loadFromLocal();
     initDemoData();
     render();
+    
+    // Авто-синхронизация при загрузке
+    if (GITHUB_TOKEN) {
+        setTimeout(() => loadFromGist().then(() => render()), 500);
+    }
 })();
 </script>
 </body>
-</html>
+    </html>
