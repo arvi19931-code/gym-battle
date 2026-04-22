@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gym Battle Pro v0.5.5</title>
+    <title>Gym Battle Pro v0.5.6</title>
     <style>
+        /* стили без изменений, как в v0.5.5 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             --bg-primary: #0d1117;
@@ -385,7 +386,7 @@
 <div id="app">Загрузка...</div>
 <script>
 (function() {
-    const APP_VERSION = '0.5.5-alpha';
+    const APP_VERSION = '0.5.6-alpha';
     const INVITE_CODE = 'ARVI-GYM-2026';
     const PAIR_PASSWORD = 'gym2026';
     const FIXED_NAMES = { admin: 'Арви', player2: 'Рейкин' };
@@ -507,7 +508,6 @@
         } catch(e) { return false; }
     }
 
-    // Загрузка данных из Gist и полная замена appState
     async function loadStateFromGist(token, gistId) {
         try {
             const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
@@ -532,7 +532,6 @@
                 pairData.player2.progress = cloud.partner.progress || 0;
                 pairData.player2.status = cloud.partner.status || 'home';
             }
-            // Обновляем демо-данные, если упражнений нет
             if (!appState.templates['Спина']?.length) initDemoData();
             loadExercises();
             return true;
@@ -543,7 +542,7 @@
         try {
             const tokenValid = await verifyToken(token);
             if (!tokenValid) {
-                alert('❌ Токен недействителен или не имеет права "gist".\n\nУбедитесь, что при создании токена вы поставили галочку "gist".');
+                alert('❌ Токен недействителен или не имеет права "gist".');
                 return false;
             }
             
@@ -604,7 +603,7 @@
     }
 
     async function syncWithGist() {
-        if (!pairData?.githubToken) return false;
+        if (!pairData?.githubToken || !pairData?.gistId) return false;
         try {
             const cloudState = {
                 bank: appState.bank,
@@ -622,9 +621,9 @@
         } catch(e) { return false; }
     }
 
-    async function createPair(githubToken, pairPassword, adminPin) {
+    async function createPair(githubToken, pairPassword, adminPin, gistId) {
         if (pairPassword !== PAIR_PASSWORD) { alert('Неверный пароль пары!'); return false; }
-        const gistId = githubToken.split('').reduce((acc,char)=>acc+char.charCodeAt(0),0).toString(16).substr(0,32);
+        if (!gistId) { alert('Введите Gist ID!'); return false; }
         pairData = {
             pairId: 'pair_'+Date.now(),
             inviteCode: INVITE_CODE,
@@ -648,11 +647,10 @@
         return true;
     }
 
-    async function joinPair(inviteCode, playerPin, githubToken) {
+    async function joinPair(inviteCode, playerPin, githubToken, gistId) {
         if (inviteCode !== INVITE_CODE) { alert('Неверный код приглашения!'); return false; }
         if (!githubToken) { alert('Введите GitHub Token!'); return false; }
-        
-        const gistId = githubToken.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0).toString(16).substr(0, 32);
+        if (!gistId) { alert('Введите Gist ID!'); return false; }
         
         const tokenValid = await verifyToken(githubToken);
         if (!tokenValid) {
@@ -660,14 +658,12 @@
             return false;
         }
         
-        // Загружаем актуальное состояние из Gist
         const loaded = await loadStateFromGist(githubToken, gistId);
         if (!loaded) {
-            alert('❌ Не удалось загрузить данные пары. Проверьте токен и интернет.');
+            alert('❌ Не удалось загрузить данные пары. Проверьте токен, Gist ID и интернет.');
             return false;
         }
         
-        // Создаём или обновляем локальную пару
         const hasLocalPair = loadPairFromStorage();
         if (!hasLocalPair) {
             pairData = {
@@ -770,12 +766,13 @@
                     <div class="app-title">💪 GYM BATTLE</div>
                     <div class="app-subtitle">Создание новой пары</div>
                     <div class="input-group"><label class="input-label">GitHub Token</label><input type="password" id="githubToken" class="start-input" placeholder="ghp_..."></div>
+                    <div class="input-group"><label class="input-label">Gist ID</label><input type="text" id="gistId" class="start-input" placeholder="d03a67ce..."></div>
                     <div class="input-group"><label class="input-label">Пароль пары</label><input type="password" id="pairPassword" class="start-input" placeholder="Пароль"></div>
                     <div class="input-group"><label class="input-label">Ваш PIN (4 цифры)</label><input type="password" id="adminPin" class="start-input" placeholder="****" maxlength="4"></div>
                     <button class="start-btn btn-primary" onclick="window.createPairAction()">Создать пару</button>
                     <div class="divider"><span>или</span></div>
                     <button class="start-btn btn-warning" onclick="window.showJoinScreen()">У меня есть код приглашения</button>
-                    <div class="hint-text">Вы — ${FIXED_NAMES.admin} (администратор)<br>Пароль пары: ${PAIR_PASSWORD}</div>
+                    <div class="hint-text">Вы — ${FIXED_NAMES.admin} (администратор)<br>Пароль пары: ${PAIR_PASSWORD}<br>Вставьте Gist ID из URL вашего Gist</div>
                     <div class="version-badge" style="margin-top:20px;">v${APP_VERSION}</div>
                 </div>
             `;
@@ -820,6 +817,7 @@
                 <div class="app-title">💪 GYM BATTLE</div>
                 <div class="app-subtitle">Создание новой пары</div>
                 <div class="input-group"><label class="input-label">GitHub Token</label><input type="password" id="githubToken" class="start-input" placeholder="ghp_..."></div>
+                <div class="input-group"><label class="input-label">Gist ID</label><input type="text" id="gistId" class="start-input" placeholder="d03a67ce..."></div>
                 <div class="input-group"><label class="input-label">Пароль пары</label><input type="password" id="pairPassword" class="start-input" placeholder="Пароль"></div>
                 <div class="input-group"><label class="input-label">Ваш PIN (4 цифры)</label><input type="password" id="adminPin" class="start-input" placeholder="****" maxlength="4"></div>
                 <button class="start-btn btn-primary" onclick="window.createPairAction()">Создать пару</button>
@@ -837,11 +835,12 @@
     
     window.createPairAction = async () => {
         const token = document.getElementById('githubToken')?.value.trim();
+        const gistId = document.getElementById('gistId')?.value.trim();
         const password = document.getElementById('pairPassword')?.value.trim();
         const pin = document.getElementById('adminPin')?.value.trim();
-        if (!token||!password||!pin) { alert('Заполните все поля!'); return; }
+        if (!token||!gistId||!password||!pin) { alert('Заполните все поля!'); return; }
         if (pin.length!==4||!/^\d+$/.test(pin)) { alert('PIN должен быть 4 цифры!'); return; }
-        if (await createPair(token, password, pin)) render();
+        if (await createPair(token, password, pin, gistId)) render();
     };
     
     window.showJoinScreen = () => {
@@ -851,12 +850,13 @@
                 <div class="app-title">🤝 Присоединение</div>
                 <div class="app-subtitle">Введите данные пары</div>
                 <div class="input-group"><label class="input-label">GitHub Token</label><input type="password" id="joinToken" class="start-input" placeholder="ghp_..."></div>
+                <div class="input-group"><label class="input-label">Gist ID</label><input type="text" id="joinGistId" class="start-input" placeholder="d03a67ce..."></div>
                 <div class="input-group"><label class="input-label">Код приглашения</label><input type="text" id="inviteCode" class="start-input" placeholder="ARVI-GYM-2026" value="${INVITE_CODE}"></div>
                 <div class="input-group"><label class="input-label">Ваш PIN (4 цифры)</label><input type="password" id="playerPin" class="start-input" placeholder="****" maxlength="4"></div>
                 <div class="role-badge player2">Вы присоединяетесь как: ${FIXED_NAMES.player2}</div>
                 <button class="start-btn btn-primary" onclick="window.joinAction()">Присоединиться</button>
                 <button class="start-btn" onclick="window.render()" style="background:transparent; border-color:var(--text-accent); color:var(--text-accent);">← Назад</button>
-                <div class="hint-text">⚠️ Токен должен совпадать с токеном админа и иметь право "gist"</div>
+                <div class="hint-text">⚠️ Токен и Gist ID должны совпадать с админскими</div>
                 <div class="version-badge" style="margin-top:20px;">v${APP_VERSION}</div>
             </div>
         `;
@@ -864,18 +864,18 @@
     
     window.joinAction = async () => {
         const token = document.getElementById('joinToken')?.value.trim();
+        const gistId = document.getElementById('joinGistId')?.value.trim();
         const code = document.getElementById('inviteCode')?.value.trim();
         const pin = document.getElementById('playerPin')?.value.trim();
-        if (!token||!code||!pin) { alert('Заполните все поля!'); return; }
+        if (!token||!gistId||!code||!pin) { alert('Заполните все поля!'); return; }
         if (pin.length!==4||!/^\d+$/.test(pin)) { alert('PIN должен быть 4 цифры!'); return; }
-        if (await joinPair(code, pin, token)) render();
+        if (await joinPair(code, pin, token, gistId)) render();
     };
     
     window.loginAction = async () => {
         const pin = document.getElementById('loginPin')?.value.trim();
         if (!pin) { alert('Введите PIN!'); return; }
         if (!loginWithPin(pin)) return;
-        // После успешного входа загружаем свежие данные из Gist
         if (pairData) {
             await loadStateFromGist(pairData.githubToken, pairData.gistId);
             savePairToStorage();
@@ -883,6 +883,8 @@
         render();
     };
 
+    // Остальные функции рендеринга (renderMainApp, renderPartnerHistoryView, renderTrainingTab, renderCalendarTab, renderHistoryTab, renderBattleTab, renderSettingsTab)
+    // идентичны v0.5.5, только в renderSettingsTab добавлено отображение Gist ID
     function renderMainApp() {
         const app = document.getElementById('app');
         const adminStatus = STATUSES[pairData.admin?.status] || STATUSES.home;
@@ -1083,6 +1085,7 @@
             <div style="margin:20px 0; padding:16px; background:var(--bg-tertiary); border-radius:12px;">
                 <p><strong>Пара:</strong> ${FIXED_NAMES.admin} и ${FIXED_NAMES.player2}</p>
                 <p><strong>Код приглашения:</strong> ${INVITE_CODE}</p>
+                <p><strong>Gist ID:</strong> ${pairData?.gistId || 'не задан'}</p>
                 <p><strong>Вы вошли как:</strong> ${currentPlayer==='admin'?FIXED_NAMES.admin+' 👑':FIXED_NAMES.player2}</p>
             </div>
             <h3 style="margin:20px 0 10px;">🎨 Тема оформления</h3>
