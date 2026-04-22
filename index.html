@@ -254,6 +254,16 @@
             border-radius: 10px;
             margin: 8px 0;
         }
+        .who-btn {
+            flex: 1;
+            padding: 12px;
+            background: #21262d;
+            border: 2px solid #30363d;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .who-btn.active { border-color: #238636; background: #1a3322; }
         
         /* Календарь и история */
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
@@ -343,6 +353,25 @@
             padding: 8px;
             border-radius: 8px;
         }
+        .workout-item {
+            background: #0d1117;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .workout-type { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .type-spina { background: #238636; }
+        .type-plechi { background: #9e6a03; }
+        .type-grud { background: #da3633; }
+        .back-btn {
+            background: transparent;
+            border: 1px solid #f0883e;
+            color: #f0883e;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 <body>
@@ -369,9 +398,9 @@
     };
     
     // ---------- ГЛОБАЛЬНОЕ СОСТОЯНИЕ ----------
-    let pairData = null;          // Данные текущей пары
-    let currentPlayer = null;     // 'admin' или 'player2'
-    let isAuthenticated = false;  // Вошёл ли пользователь
+    let pairData = null;
+    let currentPlayer = null;
+    let isAuthenticated = false;
     let currentTab = 'training';
     let calendarMonth = new Date();
     let expandedHistory = {};
@@ -407,7 +436,6 @@
     
     const deviceId = generateDeviceId();
 
-    // ---------- ЗАГРУЗКА ДАННЫХ ----------
     function loadPairFromStorage() {
         const saved = localStorage.getItem('gym_pair_data');
         if (saved) {
@@ -435,7 +463,6 @@
                         currentPlayer = sess.player;
                         isAuthenticated = true;
                         
-                        // Загружаем данные приложения
                         if (pairData.data) {
                             appState = { ...appState, ...pairData.data };
                         }
@@ -580,7 +607,7 @@
         }
     }
 
-    // ---------- СОЗДАНИЕ ПАРЫ (только админ) ----------
+    // ---------- СОЗДАНИЕ ПАРЫ ----------
     function createPair(githubToken, pairPassword, adminPin) {
         if (pairPassword !== PAIR_PASSWORD) {
             alert('Неверный пароль пары!');
@@ -623,7 +650,7 @@
         return true;
     }
 
-    // ---------- ПРИСОЕДИНЕНИЕ К ПАРЕ (игрок 2) ----------
+    // ---------- ПРИСОЕДИНЕНИЕ К ПАРЕ ----------
     function joinPair(inviteCode, playerPin) {
         if (!pairData) {
             alert('Пара не найдена! Сначала админ должен создать пару.');
@@ -640,7 +667,6 @@
             return false;
         }
         
-        // Если первый вход — сохраняем PIN
         if (!pairData.player2.pin) {
             pairData.player2.pin = playerPin;
         }
@@ -652,7 +678,6 @@
         isAuthenticated = true;
         saveSession();
         
-        // Загружаем данные
         if (pairData.data) {
             appState = { ...appState, ...pairData.data };
         }
@@ -762,6 +787,8 @@
     
     window.switchProfile = () => {
         clearSession();
+        currentPlayer = null;
+        localStorage.removeItem('gym_last_player');
         render();
     };
 
@@ -769,17 +796,15 @@
     function renderStartScreen() {
         const app = document.getElementById('app');
         
-        // Проверяем, есть ли сохранённая сессия
         if (loadSession()) {
             renderMainApp();
             return;
         }
         
-        // Проверяем, есть ли данные пары
         const hasPair = loadPairFromStorage();
         
         if (!hasPair) {
-            // Экран создания пары (только для админа)
+            // Экран создания пары
             app.innerHTML = `
                 <div class="start-screen">
                     <div class="app-title">💪 GYM BATTLE</div>
@@ -807,57 +832,115 @@
                     <button class="start-btn btn-warning" onclick="window.showJoinScreen()">У меня есть код приглашения</button>
                     
                     <div class="hint-text">
-                        Вы — Арви (администратор)<br>
+                        Вы — ${FIXED_NAMES.admin} (администратор)<br>
                         Пароль пары: ${PAIR_PASSWORD}
                     </div>
                     <div class="version-badge" style="margin-top: 20px;">v${APP_VERSION}</div>
                 </div>
             `;
         } else {
-            // Экран входа (выбор роли)
-            const sessionPlayer = localStorage.getItem('gym_last_player');
-            const suggestedPlayer = sessionPlayer || 'admin';
-            
+            // Стартовый экран с выбором
             app.innerHTML = `
                 <div class="start-screen">
-                    <div class="app-title">👋 С возвращением!</div>
-                    <div class="app-subtitle">${pairData.admin.name} и ${pairData.player2.name}</div>
+                    <div class="app-title">💪 GYM BATTLE</div>
+                    <div class="app-subtitle">Выберите действие</div>
                     
-                    <div style="margin: 20px 0;">
-                        <div style="display: flex; gap: 10px; justify-content: center;">
-                            <button class="who-btn ${suggestedPlayer === 'admin' ? 'active' : ''}" onclick="window.selectLoginRole('admin')" style="flex: 1;">
-                                ${pairData.admin.name} 👑
-                            </button>
-                            <button class="who-btn ${suggestedPlayer === 'player2' ? 'active' : ''}" onclick="window.selectLoginRole('player2')" style="flex: 1;">
-                                ${pairData.player2.name}
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label class="input-label">Введите PIN</label>
-                        <input type="password" id="loginPin" class="start-input" placeholder="****" maxlength="4" inputmode="numeric">
-                    </div>
-                    
-                    <button class="start-btn btn-primary" onclick="window.loginAction()">Войти</button>
-                    
-                    <button class="start-btn" onclick="window.switchProfile()" style="background: transparent; border-color: #f0883e; color: #f0883e;">
-                        ← Другой профиль
-                    </button>
+                    <button class="start-btn btn-primary" onclick="window.showLoginScreen()">🔓 Войти в пару</button>
+                    <button class="start-btn btn-warning" onclick="window.showJoinScreen()">🤝 У меня есть код</button>
+                    <button class="start-btn" onclick="window.showCreateScreen()" style="background: transparent; border-color: #3fb950; color: #3fb950;">✨ Создать новую пару</button>
                     
                     <div class="version-badge" style="margin-top: 20px;">v${APP_VERSION}</div>
                 </div>
             `;
-            
-            window.selectLoginRole = (role) => {
-                currentPlayer = role;
-                localStorage.setItem('gym_last_player', role);
-                renderStartScreen();
-            };
-            
-            currentPlayer = suggestedPlayer;
         }
     }
+    
+    window.showLoginScreen = () => {
+        if (!pairData) loadPairFromStorage();
+        
+        const app = document.getElementById('app');
+        const lastPlayer = localStorage.getItem('gym_last_player') || 'admin';
+        currentPlayer = lastPlayer;
+        
+        app.innerHTML = `
+            <div class="start-screen">
+                <div class="app-title">👋 С возвращением!</div>
+                <div class="app-subtitle">${pairData.admin.name} и ${pairData.player2.name}</div>
+                
+                <div style="margin: 20px 0;">
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button class="who-btn ${currentPlayer === 'admin' ? 'active' : ''}" onclick="window.selectLoginRole('admin')" style="flex: 1;">
+                            ${pairData.admin.name} 👑
+                        </button>
+                        <button class="who-btn ${currentPlayer === 'player2' ? 'active' : ''}" onclick="window.selectLoginRole('player2')" style="flex: 1;">
+                            ${pairData.player2.name}
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Введите PIN</label>
+                    <input type="password" id="loginPin" class="start-input" placeholder="****" maxlength="4" inputmode="numeric">
+                </div>
+                
+                <button class="start-btn btn-primary" onclick="window.loginAction()">Войти</button>
+                
+                <button class="start-btn" onclick="window.render()" style="background: transparent; border-color: #f0883e; color: #f0883e;">
+                    ← Назад
+                </button>
+            </div>
+        `;
+    };
+    
+    window.showCreateScreen = () => {
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="start-screen">
+                <div class="app-title">💪 GYM BATTLE</div>
+                <div class="app-subtitle">Создание новой пары</div>
+                
+                <div class="input-group">
+                    <label class="input-label">GitHub Token</label>
+                    <input type="password" id="githubToken" class="start-input" placeholder="ghp_...">
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Пароль пары</label>
+                    <input type="password" id="pairPassword" class="start-input" placeholder="Пароль">
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Ваш PIN (4 цифры)</label>
+                    <input type="password" id="adminPin" class="start-input" placeholder="****" maxlength="4" inputmode="numeric">
+                </div>
+                
+                <button class="start-btn btn-primary" onclick="window.createPairAction()">Создать пару</button>
+                
+                <button class="start-btn" onclick="window.render()" style="background: transparent; border-color: #f0883e; color: #f0883e;">
+                    ← Назад
+                </button>
+                
+                <div class="hint-text">
+                    Вы — ${FIXED_NAMES.admin} (администратор)<br>
+                    Пароль пары: ${PAIR_PASSWORD}
+                </div>
+            </div>
+        `;
+    };
+    
+    window.selectLoginRole = (role) => {
+        currentPlayer = role;
+        localStorage.setItem('gym_last_player', role);
+        
+        // Обновляем активную кнопку
+        document.querySelectorAll('.who-btn').forEach((btn, i) => {
+            if ((i === 0 && role === 'admin') || (i === 1 && role === 'player2')) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    };
     
     window.createPairAction = () => {
         const token = document.getElementById('githubToken')?.value.trim();
@@ -947,12 +1030,6 @@
             render();
         }
     };
-    
-    window.selectLoginRole = (role) => {
-        currentPlayer = role;
-        localStorage.setItem('gym_last_player', role);
-        renderStartScreen();
-    };
 
     // ---------- РЕНДЕР ОСНОВНОГО ПРИЛОЖЕНИЯ ----------
     function renderMainApp() {
@@ -1028,7 +1105,7 @@
     
     function renderPartnerHistoryView() {
         let html = `
-            <button class="back-btn" onclick="window.backFromHistory()" style="background: transparent; border: 1px solid #f0883e; color: #f0883e; margin-bottom: 12px;">← Назад</button>
+            <button class="back-btn" onclick="window.backFromHistory()">← Назад</button>
             <div style="background: #161b22; border-radius: 16px; padding: 16px;">
                 <h2>📜 Тренировки ${FIXED_NAMES.player2}</h2>
         `;
@@ -1399,6 +1476,7 @@
                 </div>
                 
                 <button class="btn-warning" onclick="window.syncNow()" style="width: 100%;">🔄 Синхронизировать</button>
+                <button class="btn-danger" onclick="window.switchProfile()" style="width: 100%; margin-top: 8px;">🚪 Сменить профиль</button>
                 
                 <div class="about-section">
                     <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 8px;">
@@ -1408,7 +1486,7 @@
                     <div class="about-text">
                         Приложение сделано Арви для личного использования.<br>
                         Никакого коммерческого смысла программа не преследует.<br>
-                        Тренируйтесь с умом! 💪
+                        Тренируйтесь с умом и прогрессируйте! 💪
                     </div>
                     <div class="about-author">© 2026 Gym Battle</div>
                 </div>
@@ -1567,4 +1645,4 @@
 })();
 </script>
 </body>
-    </html>
+</html>
