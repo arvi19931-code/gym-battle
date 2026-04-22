@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gym Battle Pro v0.3.1</title>
+    <title>Gym Battle Pro v0.4.0</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -14,7 +14,115 @@
             min-height: 100vh;
             max-width: 500px;
             margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
+        
+        /* Стартовые экраны */
+        .start-screen {
+            background: #161b22;
+            border-radius: 24px;
+            padding: 32px 24px;
+            text-align: center;
+        }
+        .app-title {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #3fb950, #f0883e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .app-subtitle {
+            color: #8b949e;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #8b949e;
+            font-size: 14px;
+        }
+        .start-input {
+            width: 100%;
+            background: #0d1117;
+            border: 2px solid #30363d;
+            color: white;
+            padding: 14px 16px;
+            border-radius: 16px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .start-input:focus {
+            border-color: #f0883e;
+        }
+        .start-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        .code-display {
+            background: #0d1117;
+            border: 2px dashed #f0883e;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            color: #f0883e;
+            font-family: monospace;
+        }
+        .role-badge {
+            background: #238636;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 12px 0;
+            font-size: 18px;
+        }
+        .role-badge.player2 {
+            background: #9e6a03;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            color: #8b949e;
+            margin: 20px 0;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #30363d;
+        }
+        .divider span {
+            padding: 0 16px;
+        }
+        .hint-text {
+            color: #8b949e;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+        .error-text {
+            color: #f85149;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        /* Основное приложение */
         .profile-section {
             background: #161b22;
             border-radius: 16px;
@@ -38,6 +146,9 @@
             font-size: 22px;
             font-weight: bold;
         }
+        .profile-avatar.player2-avatar {
+            background: #9e6a03;
+        }
         .profile-info { flex: 1; min-width: 100px; }
         .profile-name { font-size: 16px; font-weight: bold; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .profile-status-row { 
@@ -58,7 +169,6 @@
             font-size: 11px;
         }
         .vs-badge { background: #f0883e; padding: 4px 8px; border-radius: 20px; font-weight: bold; font-size: 12px; }
-        .active-badge { background: #238636; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 6px; }
         .admin-badge { background: #9e6a03; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 6px; }
         .status-bar {
             display: flex;
@@ -128,6 +238,13 @@
         .btn-danger { background: #da3633; border-color: #f85149; color: white; }
         .btn-warning { background: #9e6a03; border-color: #d29922; color: white; }
         .btn-sm { padding: 4px 8px; font-size: 12px; }
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #f85149;
+            color: #f85149;
+            padding: 4px 8px;
+            font-size: 11px;
+        }
         .settings-input {
             width: 100%;
             background: #0d1117;
@@ -137,46 +254,8 @@
             border-radius: 10px;
             margin: 8px 0;
         }
-        .who-btn {
-            flex: 1;
-            padding: 12px;
-            background: #21262d;
-            border: 2px solid #30363d;
-            border-radius: 12px;
-            text-align: center;
-            cursor: pointer;
-        }
-        .who-btn.active { border-color: #238636; background: #1a3322; }
-        .pin-dialog {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .pin-box {
-            background: #161b22;
-            padding: 24px;
-            border-radius: 24px;
-            width: 90%;
-            max-width: 320px;
-            text-align: center;
-        }
-        .pin-input {
-            background: #0d1117;
-            border: 2px solid #30363d;
-            color: white;
-            font-size: 32px;
-            padding: 12px;
-            border-radius: 16px;
-            width: 100%;
-            text-align: center;
-            letter-spacing: 8px;
-            margin: 16px 0;
-        }
-        .pin-error { color: #f85149; margin: 8px 0; font-size: 14px; }
+        
+        /* Календарь и история */
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 16px; }
         .calendar-day-header { text-align: center; font-weight: bold; color: #8b949e; padding: 8px 0; font-size: 12px; }
@@ -194,30 +273,10 @@
         .calendar-day.future { background: #1a2329; }
         .calendar-day.workout-day { background: #1a3322; border-color: #238636; }
         .calendar-day-number { font-weight: bold; margin-bottom: 4px; }
-        .calendar-day-label {
-            font-size: 10px;
-            color: #8b949e;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .calendar-legend { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+        .calendar-day-label { font-size: 10px; color: #8b949e; }
+        .calendar-legend { display: flex; gap: 12px; margin: 16px 0; }
         .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
         .legend-color { width: 16px; height: 16px; border-radius: 4px; }
-        .workout-editor { background: #161b22; border-radius: 16px; padding: 16px; margin-top: 20px; }
-        .workout-item {
-            background: #0d1117;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .workout-type { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
-        .type-spina { background: #238636; }
-        .type-plechi { background: #9e6a03; }
-        .type-grud { background: #da3633; }
         
         .history-item {
             background: #161b22;
@@ -225,46 +284,14 @@
             padding: 12px;
             margin-bottom: 12px;
         }
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .history-date { font-weight: bold; }
         .history-player { color: #8b949e; font-size: 14px; }
-        .history-exercise {
-            background: #0d1117;
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 8px;
-        }
+        .history-exercise { background: #0d1117; border-radius: 8px; padding: 10px; margin-top: 8px; }
         .history-ex-name { font-weight: bold; margin-bottom: 6px; color: #f0883e; }
-        .history-sets {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 4px;
-        }
-        .history-set {
-            background: #21262d;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 13px;
-        }
-        .expand-btn {
-            background: transparent;
-            color: #8b949e;
-            padding: 4px 8px;
-            font-size: 12px;
-            border: 1px solid #30363d;
-        }
-        .back-btn {
-            background: transparent;
-            border: 1px solid #f0883e;
-            color: #f0883e;
-            margin-bottom: 12px;
-        }
+        .history-sets { display: flex; flex-wrap: wrap; gap: 8px; }
+        .history-set { background: #21262d; padding: 4px 10px; border-radius: 20px; font-size: 13px; }
+        .expand-btn { background: transparent; color: #8b949e; padding: 4px 8px; font-size: 12px; border: 1px solid #30363d; }
         .month-header {
             background: #21262d;
             padding: 10px 16px;
@@ -272,9 +299,6 @@
             margin: 16px 0 8px;
             font-weight: bold;
             color: #f0883e;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
         .delete-history-btn {
             background: transparent;
@@ -299,16 +323,9 @@
             border-radius: 12px;
             text-align: center;
         }
-        .about-text {
-            color: #8b949e;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-        .about-author {
-            color: #f0883e;
-            font-weight: bold;
-            margin-top: 8px;
-        }
+        .about-text { color: #8b949e; font-size: 13px; line-height: 1.5; }
+        .about-author { color: #f0883e; font-weight: bold; margin-top: 8px; }
+        
         .admin-panel {
             margin-top: 20px;
             padding: 16px;
@@ -316,20 +333,8 @@
             border-radius: 12px;
             border: 1px solid #9e6a03;
         }
-        .admin-title {
-            color: #d29922;
-            font-weight: bold;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .progress-edit {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 12px;
-        }
+        .admin-title { color: #d29922; font-weight: bold; margin-bottom: 12px; }
+        .progress-edit { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
         .progress-edit input {
             flex: 1;
             background: #0d1117;
@@ -346,8 +351,14 @@
 
 <script>
 (function() {
-    // ---------- ВЕРСИЯ ----------
-    const APP_VERSION = '0.3.1-alpha';
+    // ---------- КОНФИГУРАЦИЯ ----------
+    const APP_VERSION = '0.4.0-alpha';
+    const INVITE_CODE = 'ARVI-GYM-2026';
+    const PAIR_PASSWORD = 'gym2026';
+    const FIXED_NAMES = {
+        admin: 'Арви',
+        player2: 'Рейкин'
+    };
     
     // Статусы
     const STATUSES = {
@@ -357,68 +368,116 @@
         skip: { icon: '😴', text: 'Пропущу' }
     };
     
-    const GIST_ID = 'd03a67ce07bf4d0ef42cc31824b7f396';
-    let GITHUB_TOKEN = '';
+    // ---------- ГЛОБАЛЬНОЕ СОСТОЯНИЕ ----------
+    let pairData = null;          // Данные текущей пары
+    let currentPlayer = null;     // 'admin' или 'player2'
+    let isAuthenticated = false;  // Вошёл ли пользователь
+    let currentTab = 'training';
+    let calendarMonth = new Date();
+    let expandedHistory = {};
+    let viewingPartnerHistory = false;
     
-    let state = {
-        profile: { name: 'Игрок 1', progress: 0, pin: '', isAdmin: true, status: 'home' },
-        partner: { name: 'Игрок 2', progress: 0, pin: '', status: 'home' },
+    let appState = {
         bank: 0,
         currentDayIndex: 0,
         templates: { 'Спина': [], 'Трицепс': [], 'Плечи': [], 'Пресс': [], 'Грудь': [], 'Бицепс': [] },
         currentExercises: [],
         history: [],
         selectedDate: new Date().toISOString().split('T')[0],
-        currentPlayer: 'me',
         schedule: []
     };
-
-    let unlockedPlayer = null;
-    let currentTab = 'training';
-    let calendarMonth = new Date();
-    let expandedHistory = {};
-    let viewingPartnerHistory = false;
     
     const DAY_CONFIG = [
         { groups: ['Спина', 'Трицепс'], name: 'СПИНА + ТРИЦЕПС', type: 'spina' },
         { groups: ['Плечи', 'Пресс'], name: 'ПЛЕЧИ + ПРЕСС', type: 'plechi' },
         { groups: ['Грудь', 'Бицепс'], name: 'ГРУДЬ + БИЦЕПС', type: 'grud' }
     ];
-
+    
     const MONTH_NAMES = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 
-    function loadFromLocal() {
-        const saved = localStorage.getItem('gym_pro_backup');
+    // ---------- УТИЛИТЫ ----------
+    function generateDeviceId() {
+        let id = localStorage.getItem('gym_device_id');
+        if (!id) {
+            id = 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('gym_device_id', id);
+        }
+        return id;
+    }
+    
+    const deviceId = generateDeviceId();
+
+    // ---------- ЗАГРУЗКА ДАННЫХ ----------
+    function loadPairFromStorage() {
+        const saved = localStorage.getItem('gym_pair_data');
         if (saved) {
             try {
-                const parsed = JSON.parse(saved);
-                
-                if (parsed.history) {
-                    parsed.history = parsed.history.map(h => {
-                        if (!h.id) h.id = Date.now() + Math.random() + Math.random();
-                        return h;
-                    });
-                }
-                
-                state = { ...state, ...parsed };
-                if (!state.profile.pin) state.profile.pin = '';
-                if (!state.partner.pin) state.partner.pin = '';
-                if (!state.schedule) state.schedule = [];
-                if (state.profile.isAdmin === undefined) state.profile.isAdmin = true;
-                if (!state.profile.status) state.profile.status = 'home';
-                if (!state.partner.status) state.partner.status = 'home';
+                pairData = JSON.parse(saved);
+                return true;
             } catch(e) {}
         }
-        const savedToken = localStorage.getItem('gym_github_token');
-        if (savedToken) GITHUB_TOKEN = savedToken;
-        loadExercises();
+        return false;
     }
-
+    
+    function savePairToStorage() {
+        if (pairData) {
+            localStorage.setItem('gym_pair_data', JSON.stringify(pairData));
+        }
+    }
+    
+    function loadSession() {
+        const session = localStorage.getItem('gym_session');
+        if (session) {
+            try {
+                const sess = JSON.parse(session);
+                if (sess.pairId && loadPairFromStorage()) {
+                    if (pairData.pairId === sess.pairId) {
+                        currentPlayer = sess.player;
+                        isAuthenticated = true;
+                        
+                        // Загружаем данные приложения
+                        if (pairData.data) {
+                            appState = { ...appState, ...pairData.data };
+                        }
+                        if (!appState.templates['Спина']?.length) initDemoData();
+                        loadExercises();
+                        return true;
+                    }
+                }
+            } catch(e) {}
+        }
+        return false;
+    }
+    
+    function saveSession() {
+        if (pairData && currentPlayer) {
+            localStorage.setItem('gym_session', JSON.stringify({
+                pairId: pairData.pairId,
+                player: currentPlayer,
+                timestamp: Date.now()
+            }));
+        }
+    }
+    
+    function clearSession() {
+        localStorage.removeItem('gym_session');
+        isAuthenticated = false;
+        currentPlayer = null;
+    }
+    
+    function saveAppState() {
+        if (pairData) {
+            pairData.data = appState;
+            savePairToStorage();
+            syncWithGist();
+        }
+    }
+    
     function loadExercises() {
-        const groups = DAY_CONFIG[state.currentDayIndex].groups;
+        const groups = DAY_CONFIG[appState.currentDayIndex].groups;
         let newList = [];
         groups.forEach(group => {
-            (state.templates[group] || []).forEach(t => {
+            (appState.templates[group] || []).forEach(t => {
                 newList.push({
                     id: Date.now() + Math.random() + '',
                     group: group,
@@ -427,52 +486,68 @@
                 });
             });
         });
-        state.currentExercises = newList;
+        appState.currentExercises = newList;
+    }
+    
+    function initDemoData() {
+        if (!appState.templates['Спина']?.length) {
+            appState.templates['Спина'] = [{ name: 'Тяга верхнего блока', sets: [{ weight: 20, reps: 15 }, { weight: 40, reps: 12 }, { weight: 60, reps: 10 }] }];
+            appState.templates['Трицепс'] = [{ name: 'Жим узким', sets: [{ weight: 50, reps: 12 }] }];
+            appState.templates['Плечи'] = [{ name: 'Жим гантелей', sets: [{ weight: 22, reps: 12 }] }];
+            appState.templates['Пресс'] = [{ name: 'Скручивания', sets: [{ weight: 10, reps: 15 }] }];
+            appState.templates['Грудь'] = [{ name: 'Жим лёжа', sets: [{ weight: 60, reps: 10 }] }];
+            appState.templates['Бицепс'] = [{ name: 'ПШНБ', sets: [{ weight: 30, reps: 12 }] }];
+        }
+    }
+    
+    function isAdmin() {
+        return isAuthenticated && currentPlayer === 'admin';
     }
 
-    function saveToLocal() {
-        localStorage.setItem('gym_pro_backup', JSON.stringify(state));
-    }
-
-    // Синхронизация с Gist
+    // ---------- GIST СИНХРОНИЗАЦИЯ ----------
     async function syncWithGist() {
-        if (!GITHUB_TOKEN) return false;
+        if (!pairData?.githubToken) return false;
         
         try {
             const cloudState = {
-                bank: state.bank,
-                profile: state.profile,
-                partner: state.partner,
-                history: state.history,
-                schedule: state.schedule
+                bank: appState.bank,
+                profile: { 
+                    name: FIXED_NAMES.admin, 
+                    progress: pairData.admin?.progress || 0, 
+                    status: pairData.admin?.status || 'home' 
+                },
+                partner: { 
+                    name: FIXED_NAMES.player2, 
+                    progress: pairData.player2?.progress || 0, 
+                    status: pairData.player2?.status || 'home' 
+                },
+                history: appState.history,
+                schedule: appState.schedule
             };
             
-            await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+            await fetch(`https://api.github.com/gists/${pairData.gistId}`, {
                 method: 'PATCH',
                 headers: {
-                    'Authorization': `token ${GITHUB_TOKEN}`,
+                    'Authorization': `token ${pairData.githubToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    files: {
-                        'gym_data.json': { content: JSON.stringify(cloudState, null, 2) }
-                    }
+                    files: { 'gym_data.json': { content: JSON.stringify(cloudState, null, 2) } }
                 })
             });
-            
             return true;
         } catch(e) {
             console.warn('Sync error:', e);
             return false;
         }
     }
-
+    
     async function loadFromGist() {
-        if (!GITHUB_TOKEN) return false;
+        if (!pairData?.githubToken) return false;
         
         try {
-            const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+            const response = await fetch(`https://api.github.com/gists/${pairData.gistId}`, {
+                headers: { 'Authorization': `token ${pairData.githubToken}` }
             });
             
             if (response.ok) {
@@ -481,18 +556,20 @@
                 if (content) {
                     const cloudState = JSON.parse(content);
                     
-                    if (cloudState.profile?.status !== undefined) {
-                        state.profile.status = cloudState.profile.status;
+                    if (cloudState.bank !== undefined) appState.bank = cloudState.bank;
+                    if (cloudState.history) appState.history = cloudState.history;
+                    if (cloudState.schedule) appState.schedule = cloudState.schedule;
+                    
+                    if (cloudState.profile) {
+                        pairData.admin.progress = cloudState.profile.progress || 0;
+                        pairData.admin.status = cloudState.profile.status || 'home';
                     }
-                    if (cloudState.partner?.status !== undefined) {
-                        state.partner.status = cloudState.partner.status;
+                    if (cloudState.partner) {
+                        pairData.player2.progress = cloudState.partner.progress || 0;
+                        pairData.player2.status = cloudState.partner.status || 'home';
                     }
                     
-                    if (cloudState.bank !== undefined) state.bank = cloudState.bank;
-                    if (cloudState.profile?.progress !== undefined) state.profile.progress = cloudState.profile.progress;
-                    if (cloudState.partner?.progress !== undefined) state.partner.progress = cloudState.partner.progress;
-                    
-                    saveToLocal();
+                    savePairToStorage();
                     return true;
                 }
             }
@@ -503,133 +580,132 @@
         }
     }
 
+    // ---------- СОЗДАНИЕ ПАРЫ (только админ) ----------
+    function createPair(githubToken, pairPassword, adminPin) {
+        if (pairPassword !== PAIR_PASSWORD) {
+            alert('Неверный пароль пары!');
+            return false;
+        }
+        
+        const gistId = githubToken.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0).toString(16).substr(0, 32);
+        
+        pairData = {
+            pairId: 'pair_' + Date.now(),
+            inviteCode: INVITE_CODE,
+            pairPassword: PAIR_PASSWORD,
+            githubToken: githubToken,
+            gistId: gistId || 'd03a67ce07bf4d0ef42cc31824b7f396',
+            admin: {
+                deviceId: deviceId,
+                name: FIXED_NAMES.admin,
+                pin: adminPin,
+                progress: 0,
+                status: 'home'
+            },
+            player2: {
+                deviceId: null,
+                name: FIXED_NAMES.player2,
+                pin: null,
+                progress: 0,
+                status: 'home'
+            },
+            data: null
+        };
+        
+        initDemoData();
+        pairData.data = appState;
+        savePairToStorage();
+        
+        currentPlayer = 'admin';
+        isAuthenticated = true;
+        saveSession();
+        
+        return true;
+    }
+
+    // ---------- ПРИСОЕДИНЕНИЕ К ПАРЕ (игрок 2) ----------
+    function joinPair(inviteCode, playerPin) {
+        if (!pairData) {
+            alert('Пара не найдена! Сначала админ должен создать пару.');
+            return false;
+        }
+        
+        if (inviteCode !== pairData.inviteCode) {
+            alert('Неверный код приглашения!');
+            return false;
+        }
+        
+        if (pairData.player2.pin && pairData.player2.pin !== playerPin) {
+            alert('Неверный PIN!');
+            return false;
+        }
+        
+        // Если первый вход — сохраняем PIN
+        if (!pairData.player2.pin) {
+            pairData.player2.pin = playerPin;
+        }
+        
+        pairData.player2.deviceId = deviceId;
+        savePairToStorage();
+        
+        currentPlayer = 'player2';
+        isAuthenticated = true;
+        saveSession();
+        
+        // Загружаем данные
+        if (pairData.data) {
+            appState = { ...appState, ...pairData.data };
+        }
+        loadExercises();
+        
+        return true;
+    }
+
+    // ---------- ВХОД ПО PIN ----------
+    function loginWithPin(pin) {
+        if (!pairData) return false;
+        
+        if (currentPlayer === 'admin') {
+            if (pin === pairData.admin.pin) {
+                isAuthenticated = true;
+                saveSession();
+                return true;
+            }
+        } else if (currentPlayer === 'player2') {
+            if (pin === pairData.player2.pin) {
+                isAuthenticated = true;
+                saveSession();
+                return true;
+            }
+        }
+        
+        alert('Неверный PIN!');
+        return false;
+    }
+
+    // ---------- ОБНОВЛЕНИЕ СТАТУСА ----------
     async function updateStatus(newStatus) {
-        if (!unlockedPlayer) {
-            alert('Сначала войдите в профиль!');
-            return;
-        }
+        if (!isAuthenticated) return;
         
-        // Обновляем локально
-        if (unlockedPlayer === 'me') {
-            state.profile.status = newStatus;
+        if (currentPlayer === 'admin') {
+            pairData.admin.status = newStatus;
         } else {
-            state.partner.status = newStatus;
+            pairData.player2.status = newStatus;
         }
         
-        saveToLocal();
-        render(); // Сразу обновляем интерфейс
-        
-        // Синхронизируем с Gist
+        savePairToStorage();
         await syncWithGist();
-    }
-
-    function initDemoData() {
-        if (state.templates['Спина'].length === 0) {
-            state.templates['Спина'] = [{ name: 'Тяга верхнего блока', sets: [{ weight: 20, reps: 15 }, { weight: 40, reps: 12 }, { weight: 60, reps: 10 }] }];
-            state.templates['Трицепс'] = [{ name: 'Жим узким', sets: [{ weight: 50, reps: 12 }] }];
-            state.templates['Плечи'] = [{ name: 'Жим гантелей', sets: [{ weight: 22, reps: 12 }] }];
-            state.templates['Пресс'] = [{ name: 'Скручивания', sets: [{ weight: 10, reps: 15 }] }];
-            state.templates['Грудь'] = [{ name: 'Жим лёжа', sets: [{ weight: 60, reps: 10 }] }];
-            state.templates['Бицепс'] = [{ name: 'ПШНБ', sets: [{ weight: 30, reps: 12 }] }];
-            saveToLocal();
-        }
-    }
-
-    function isAdmin() {
-        return unlockedPlayer === 'me' && state.profile.isAdmin;
-    }
-
-    function switchPlayer(player) {
-        if (unlockedPlayer === player) {
-            state.currentPlayer = player;
-            render();
-            return;
-        }
-        
-        const expectedPin = player === 'me' ? state.profile.pin : state.partner.pin;
-        const playerName = player === 'me' ? state.profile.name : state.partner.name;
-        
-        if (!expectedPin) {
-            unlockedPlayer = player;
-            state.currentPlayer = player;
-            render();
-            return;
-        }
-        
-        const pinDialog = document.createElement('div');
-        pinDialog.className = 'pin-dialog';
-        pinDialog.innerHTML = `
-            <div class="pin-box">
-                <h3>🔐 Вход</h3>
-                <p style="color: #8b949e; margin: 8px 0;">${playerName}</p>
-                <input type="password" id="pinInput" class="pin-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" autofocus>
-                <div id="pinError" class="pin-error"></div>
-                <div style="display: flex; gap: 10px; margin-top: 16px;">
-                    <button onclick="window.cancelPin()" style="flex: 1;">Отмена</button>
-                    <button onclick="window.checkPin('${player}')" class="btn-primary" style="flex: 1;">Войти</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(pinDialog);
-        
-        const input = document.getElementById('pinInput');
-        input.focus();
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') window.checkPin(player);
-        });
-    }
-
-    window.checkPin = (player) => {
-        const input = document.getElementById('pinInput');
-        const enteredPin = input.value;
-        const expectedPin = player === 'me' ? state.profile.pin : state.partner.pin;
-        
-        if (enteredPin === expectedPin) {
-            unlockedPlayer = player;
-            state.currentPlayer = player;
-            closePinDialog();
-            render();
-        } else {
-            document.getElementById('pinError').textContent = 'Неверный PIN';
-            input.value = '';
-            input.focus();
-        }
-    };
-
-    window.cancelPin = () => closePinDialog();
-    function closePinDialog() {
-        const dialog = document.querySelector('.pin-dialog');
-        if (dialog) dialog.remove();
-    }
-
-    window.logout = () => {
-        unlockedPlayer = null;
-        viewingPartnerHistory = false;
         render();
-    };
-    
-    window.viewPartnerHistory = () => {
-        viewingPartnerHistory = true;
-        currentTab = 'history';
-        render();
-    };
-    
-    window.backFromHistory = () => {
-        viewingPartnerHistory = false;
-        currentTab = 'training';
-        render();
-    };
+    }
 
+    // ---------- ЗАВЕРШЕНИЕ ТРЕНИРОВКИ ----------
     async function finishTraining(isDone) {
-        if (unlockedPlayer !== state.currentPlayer) {
-            alert('Сначала войдите под своим профилем!');
-            return;
-        }
+        if (!isAuthenticated) return;
         
-        const groups = DAY_CONFIG[state.currentDayIndex].groups;
+        const groups = DAY_CONFIG[appState.currentDayIndex].groups;
         groups.forEach(group => {
-            const exs = state.currentExercises.filter(e => e.group === group);
-            state.templates[group] = exs.map(e => ({
+            const exs = appState.currentExercises.filter(e => e.group === group);
+            appState.templates[group] = exs.map(e => ({
                 name: e.name,
                 sets: e.sets.map(s => ({ weight: s.weight, reps: s.reps }))
             }));
@@ -638,185 +714,290 @@
         let progress = 0;
         if (isDone) {
             progress = 2.5;
-            state.bank += 100;
-            if (state.currentPlayer === 'me') state.profile.progress += 2.5;
-            else state.partner.progress += 2.5;
+            appState.bank += 100;
+            if (currentPlayer === 'admin') pairData.admin.progress += 2.5;
+            else pairData.player2.progress += 2.5;
             
             groups.forEach(group => {
-                const exs = state.currentExercises.filter(e => e.group === group);
-                state.templates[group] = exs.map(e => ({
+                const exs = appState.currentExercises.filter(e => e.group === group);
+                appState.templates[group] = exs.map(e => ({
                     name: e.name,
                     sets: e.sets.map(s => ({ ...s, weight: s.weight + 2.5 }))
                 }));
             });
             
-            // Сбрасываем статус на "Дома" после тренировки
-            if (state.currentPlayer === 'me') {
-                state.profile.status = 'home';
-            } else {
-                state.partner.status = 'home';
-            }
+            if (currentPlayer === 'admin') pairData.admin.status = 'home';
+            else pairData.player2.status = 'home';
         } else {
-            state.bank += 200;
-            // Статус "Пропущу"
-            if (state.currentPlayer === 'me') {
-                state.profile.status = 'skip';
-            } else {
-                state.partner.status = 'skip';
-            }
+            appState.bank += 200;
+            if (currentPlayer === 'admin') pairData.admin.status = 'skip';
+            else pairData.player2.status = 'skip';
         }
         
-        state.history.push({
+        appState.history.push({
             id: Date.now() + Math.random(),
-            date: state.selectedDate,
-            dayIndex: state.currentDayIndex,
-            dayName: DAY_CONFIG[state.currentDayIndex].name,
-            player: state.currentPlayer,
-            playerName: state.currentPlayer === 'me' ? state.profile.name : state.partner.name,
+            date: appState.selectedDate,
+            dayIndex: appState.currentDayIndex,
+            dayName: DAY_CONFIG[appState.currentDayIndex].name,
+            player: currentPlayer,
+            playerName: currentPlayer === 'admin' ? FIXED_NAMES.admin : FIXED_NAMES.player2,
             completed: isDone,
             progress: progress,
-            exercises: JSON.parse(JSON.stringify(state.currentExercises))
+            exercises: JSON.parse(JSON.stringify(appState.currentExercises))
         });
         
-        state.currentDayIndex = (state.currentDayIndex + 1) % 3;
-        state.selectedDate = new Date().toISOString().split('T')[0];
+        appState.currentDayIndex = (appState.currentDayIndex + 1) % 3;
+        appState.selectedDate = new Date().toISOString().split('T')[0];
         
         loadExercises();
-        saveToLocal();
-        await syncWithGist();
+        saveAppState();
         render();
     }
 
-    function deleteHistoryEntry(historyId, fallbackIndex) {
-        if (!isAdmin()) {
-            alert('Только администратор может удалять записи!');
-            return;
-        }
-        
-        if (confirm('Удалить эту запись из истории?')) {
-            const beforeLength = state.history.length;
-            state.history = state.history.filter(h => String(h.id) !== String(historyId));
-            
-            if (state.history.length === beforeLength && fallbackIndex !== undefined) {
-                state.history.splice(fallbackIndex, 1);
-            }
-            
-            recalculateProgress();
-            saveToLocal();
-            syncWithGist();
-            render();
-        }
-    }
-
-    function recalculateProgress() {
-        state.profile.progress = 0;
-        state.partner.progress = 0;
-        
-        state.history.forEach(h => {
-            if (h.completed) {
-                if (h.player === 'me') {
-                    state.profile.progress += h.progress || 2.5;
-                } else {
-                    state.partner.progress += h.progress || 2.5;
-                }
-            }
-        });
-    }
-
-    function addToSchedule(date, type, description) {
-        if (!isAdmin()) {
-            alert('Только администратор может менять расписание!');
-            return;
-        }
-        state.schedule.push({ date, type, description });
-        saveToLocal();
-        syncWithGist();
+    // ---------- ВЫХОД ----------
+    window.logout = () => {
+        clearSession();
         render();
-    }
-
-    function removeFromSchedule(index) {
-        if (!isAdmin()) {
-            alert('Только администратор может менять расписание!');
-            return;
-        }
-        state.schedule.splice(index, 1);
-        saveToLocal();
-        syncWithGist();
+    };
+    
+    window.switchProfile = () => {
+        clearSession();
         render();
-    }
+    };
 
-    function getWorkoutForDate(dateStr) {
-        return state.schedule.find(w => w.date === dateStr);
-    }
-
-    function groupHistoryByMonth(historyItems) {
-        const groups = {};
-        historyItems.forEach(h => {
-            const date = new Date(h.date);
-            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-            if (!groups[monthKey]) {
-                groups[monthKey] = {
-                    year: date.getFullYear(),
-                    month: date.getMonth(),
-                    items: []
-                };
-            }
-            groups[monthKey].items.push(h);
-        });
-        
-        return Object.values(groups).sort((a, b) => {
-            if (a.year !== b.year) return b.year - a.year;
-            return b.month - a.month;
-        });
-    }
-
-    function render() {
+    // ---------- РЕНДЕР СТАРТОВЫХ ЭКРАНОВ ----------
+    function renderStartScreen() {
         const app = document.getElementById('app');
         
-        const myStatus = STATUSES[state.profile.status] || STATUSES.home;
-        const partnerStatus = STATUSES[state.partner.status] || STATUSES.home;
-        const currentStatus = unlockedPlayer === 'me' ? state.profile.status : (unlockedPlayer === 'partner' ? state.partner.status : 'home');
+        // Проверяем, есть ли сохранённая сессия
+        if (loadSession()) {
+            renderMainApp();
+            return;
+        }
+        
+        // Проверяем, есть ли данные пары
+        const hasPair = loadPairFromStorage();
+        
+        if (!hasPair) {
+            // Экран создания пары (только для админа)
+            app.innerHTML = `
+                <div class="start-screen">
+                    <div class="app-title">💪 GYM BATTLE</div>
+                    <div class="app-subtitle">Создание новой пары</div>
+                    
+                    <div class="input-group">
+                        <label class="input-label">GitHub Token</label>
+                        <input type="password" id="githubToken" class="start-input" placeholder="ghp_...">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="input-label">Пароль пары</label>
+                        <input type="password" id="pairPassword" class="start-input" placeholder="Пароль">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="input-label">Ваш PIN (4 цифры)</label>
+                        <input type="password" id="adminPin" class="start-input" placeholder="****" maxlength="4" inputmode="numeric">
+                    </div>
+                    
+                    <button class="start-btn btn-primary" onclick="window.createPairAction()">Создать пару</button>
+                    
+                    <div class="divider"><span>или</span></div>
+                    
+                    <button class="start-btn btn-warning" onclick="window.showJoinScreen()">У меня есть код приглашения</button>
+                    
+                    <div class="hint-text">
+                        Вы — Арви (администратор)<br>
+                        Пароль пары: ${PAIR_PASSWORD}
+                    </div>
+                    <div class="version-badge" style="margin-top: 20px;">v${APP_VERSION}</div>
+                </div>
+            `;
+        } else {
+            // Экран входа (выбор роли)
+            const sessionPlayer = localStorage.getItem('gym_last_player');
+            const suggestedPlayer = sessionPlayer || 'admin';
+            
+            app.innerHTML = `
+                <div class="start-screen">
+                    <div class="app-title">👋 С возвращением!</div>
+                    <div class="app-subtitle">${pairData.admin.name} и ${pairData.player2.name}</div>
+                    
+                    <div style="margin: 20px 0;">
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button class="who-btn ${suggestedPlayer === 'admin' ? 'active' : ''}" onclick="window.selectLoginRole('admin')" style="flex: 1;">
+                                ${pairData.admin.name} 👑
+                            </button>
+                            <button class="who-btn ${suggestedPlayer === 'player2' ? 'active' : ''}" onclick="window.selectLoginRole('player2')" style="flex: 1;">
+                                ${pairData.player2.name}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="input-label">Введите PIN</label>
+                        <input type="password" id="loginPin" class="start-input" placeholder="****" maxlength="4" inputmode="numeric">
+                    </div>
+                    
+                    <button class="start-btn btn-primary" onclick="window.loginAction()">Войти</button>
+                    
+                    <button class="start-btn" onclick="window.switchProfile()" style="background: transparent; border-color: #f0883e; color: #f0883e;">
+                        ← Другой профиль
+                    </button>
+                    
+                    <div class="version-badge" style="margin-top: 20px;">v${APP_VERSION}</div>
+                </div>
+            `;
+            
+            window.selectLoginRole = (role) => {
+                currentPlayer = role;
+                localStorage.setItem('gym_last_player', role);
+                renderStartScreen();
+            };
+            
+            currentPlayer = suggestedPlayer;
+        }
+    }
+    
+    window.createPairAction = () => {
+        const token = document.getElementById('githubToken')?.value.trim();
+        const password = document.getElementById('pairPassword')?.value.trim();
+        const pin = document.getElementById('adminPin')?.value.trim();
+        
+        if (!token || !password || !pin) {
+            alert('Заполните все поля!');
+            return;
+        }
+        
+        if (pin.length !== 4 || !/^\d+$/.test(pin)) {
+            alert('PIN должен быть 4 цифры!');
+            return;
+        }
+        
+        if (createPair(token, password, pin)) {
+            render();
+        }
+    };
+    
+    window.showJoinScreen = () => {
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="start-screen">
+                <div class="app-title">🤝 Присоединение</div>
+                <div class="app-subtitle">Введите код приглашения</div>
+                
+                <div class="input-group">
+                    <label class="input-label">Код приглашения</label>
+                    <input type="text" id="inviteCode" class="start-input" placeholder="ARVI-GYM-2026" value="${INVITE_CODE}">
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Ваш PIN (4 цифры)</label>
+                    <input type="password" id="playerPin" class="start-input" placeholder="****" maxlength="4" inputmode="numeric">
+                </div>
+                
+                <div class="role-badge player2">
+                    Вы присоединяетесь как: ${FIXED_NAMES.player2}
+                </div>
+                
+                <button class="start-btn btn-primary" onclick="window.joinAction()">Присоединиться</button>
+                
+                <button class="start-btn" onclick="window.render()" style="background: transparent; border-color: #f0883e; color: #f0883e;">
+                    ← Назад
+                </button>
+                
+                <div class="version-badge" style="margin-top: 20px;">v${APP_VERSION}</div>
+            </div>
+        `;
+    };
+    
+    window.joinAction = () => {
+        if (!loadPairFromStorage()) {
+            alert('Пара не найдена! Сначала админ должен создать пару.');
+            return;
+        }
+        
+        const code = document.getElementById('inviteCode')?.value.trim();
+        const pin = document.getElementById('playerPin')?.value.trim();
+        
+        if (!code || !pin) {
+            alert('Заполните все поля!');
+            return;
+        }
+        
+        if (pin.length !== 4 || !/^\d+$/.test(pin)) {
+            alert('PIN должен быть 4 цифры!');
+            return;
+        }
+        
+        if (joinPair(code, pin)) {
+            render();
+        }
+    };
+    
+    window.loginAction = () => {
+        const pin = document.getElementById('loginPin')?.value.trim();
+        
+        if (!pin) {
+            alert('Введите PIN!');
+            return;
+        }
+        
+        if (loginWithPin(pin)) {
+            render();
+        }
+    };
+    
+    window.selectLoginRole = (role) => {
+        currentPlayer = role;
+        localStorage.setItem('gym_last_player', role);
+        renderStartScreen();
+    };
+
+    // ---------- РЕНДЕР ОСНОВНОГО ПРИЛОЖЕНИЯ ----------
+    function renderMainApp() {
+        const app = document.getElementById('app');
+        
+        const adminStatus = STATUSES[pairData.admin?.status] || STATUSES.home;
+        const player2Status = STATUSES[pairData.player2?.status] || STATUSES.home;
+        const currentStatus = currentPlayer === 'admin' ? pairData.admin?.status : pairData.player2?.status;
         
         let html = `
             <div class="profile-section">
                 <div class="profile-row">
-                    <div class="profile-avatar" style="background: #238636;">${state.profile.name[0]}</div>
+                    <div class="profile-avatar" style="background: #238636;">${FIXED_NAMES.admin[0]}</div>
                     <div class="profile-info">
                         <div class="profile-name">
-                            ${state.profile.name}
-                            ${unlockedPlayer === 'me' ? '<span class="active-badge">✓</span>' : ''}
-                            ${state.profile.isAdmin ? '<span class="admin-badge">👑</span>' : ''}
+                            ${FIXED_NAMES.admin}
+                            ${currentPlayer === 'admin' ? '<span style="color: #3fb950;">✓</span>' : ''}
+                            <span class="admin-badge">👑</span>
                         </div>
                         <div class="profile-status-row">
-                            <span>📈 +${state.profile.progress.toFixed(1)} кг</span>
-                            <span class="player-status">${myStatus.icon} ${myStatus.text}</span>
+                            <span>📈 +${(pairData.admin?.progress || 0).toFixed(1)} кг</span>
+                            <span class="player-status">${adminStatus.icon} ${adminStatus.text}</span>
                         </div>
                     </div>
-                    <button onclick="window.editProfile()" class="btn-sm">✏️</button>
                     <div class="vs-badge">VS</div>
                     <div class="profile-info" style="text-align: right; cursor: pointer;" onclick="window.viewPartnerHistory()">
                         <div class="profile-name">
-                            ${state.partner.name}
-                            ${unlockedPlayer === 'partner' ? '<span class="active-badge">✓</span>' : ''}
+                            ${FIXED_NAMES.player2}
+                            ${currentPlayer === 'player2' ? '<span style="color: #3fb950;">✓</span>' : ''}
                         </div>
                         <div class="profile-status-row" style="justify-content: flex-end;">
-                            <span>📈 +${state.partner.progress.toFixed(1)} кг</span>
-                            <span class="player-status">${partnerStatus.icon} ${partnerStatus.text}</span>
+                            <span>📈 +${(pairData.player2?.progress || 0).toFixed(1)} кг</span>
+                            <span class="player-status">${player2Status.icon} ${player2Status.text}</span>
                             <span>👁️</span>
                         </div>
                     </div>
-                    <button onclick="window.editPartner()" class="btn-sm">✏️</button>
-                    ${unlockedPlayer ? `<button onclick="window.logout()" class="btn-sm" style="margin-left: auto; background: transparent; border-color: #f85149; color: #f85149;">Выйти</button>` : ''}
+                    <button onclick="window.logout()" class="logout-btn">Выйти</button>
                 </div>
                 
-                ${unlockedPlayer ? `
-                    <div class="status-bar">
-                        <button class="status-btn ${currentStatus === 'home' ? 'active' : ''}" onclick="window.setStatus('home')">🏠 Дома</button>
-                        <button class="status-btn ${currentStatus === 'going' ? 'active' : ''}" onclick="window.setStatus('going')">🚗 Еду</button>
-                        <button class="status-btn ${currentStatus === 'training' ? 'active' : ''}" onclick="window.setStatus('training')">🏋️ Тренируюсь</button>
-                        <button class="status-btn ${currentStatus === 'skip' ? 'active' : ''}" onclick="window.setStatus('skip')">😴 Пропущу</button>
-                    </div>
-                ` : ''}
+                <div class="status-bar">
+                    <button class="status-btn ${currentStatus === 'home' ? 'active' : ''}" onclick="window.setStatus('home')">🏠 Дома</button>
+                    <button class="status-btn ${currentStatus === 'going' ? 'active' : ''}" onclick="window.setStatus('going')">🚗 Еду</button>
+                    <button class="status-btn ${currentStatus === 'training' ? 'active' : ''}" onclick="window.setStatus('training')">🏋️ Тренируюсь</button>
+                    <button class="status-btn ${currentStatus === 'skip' ? 'active' : ''}" onclick="window.setStatus('skip')">😴 Пропущу</button>
+                </div>
             </div>
             
             <div class="tabs">
@@ -827,7 +1008,7 @@
                 <button class="tab ${currentTab === 'settings' ? 'active' : ''}" onclick="window.switchTab('settings')">⚙️ Настр</button>
             </div>
         `;
-
+        
         if (viewingPartnerHistory) {
             html += renderPartnerHistoryView();
         } else if (currentTab === 'training') {
@@ -841,21 +1022,21 @@
         } else if (currentTab === 'settings') {
             html += renderSettingsTab();
         }
-
+        
         app.innerHTML = html;
     }
     
     function renderPartnerHistoryView() {
         let html = `
-            <button class="back-btn" onclick="window.backFromHistory()">← Назад к тренировке</button>
+            <button class="back-btn" onclick="window.backFromHistory()" style="background: transparent; border: 1px solid #f0883e; color: #f0883e; margin-bottom: 12px;">← Назад</button>
             <div style="background: #161b22; border-radius: 16px; padding: 16px;">
-                <h2>📜 Тренировки ${state.partner.name}</h2>
+                <h2>📜 Тренировки ${FIXED_NAMES.player2}</h2>
         `;
         
-        const partnerHistory = state.history.filter(h => h.player === 'partner').sort((a, b) => new Date(b.date) - new Date(a.date));
+        const partnerHistory = appState.history.filter(h => h.player === 'player2').sort((a, b) => new Date(b.date) - new Date(a.date));
         
         if (partnerHistory.length === 0) {
-            html += `<p style="color: #8b949e; text-align: center; padding: 20px;">${state.partner.name} ещё не тренировался</p>`;
+            html += `<p style="color: #8b949e; text-align: center; padding: 20px;">${FIXED_NAMES.player2} ещё не тренировался</p>`;
         } else {
             const grouped = groupHistoryByMonth(partnerHistory);
             
@@ -911,16 +1092,16 @@
         html += `</div>`;
         return html;
     }
-
+    
     function renderTrainingTab() {
-        const day = DAY_CONFIG[state.currentDayIndex];
+        const day = DAY_CONFIG[appState.currentDayIndex];
         let html = `
             <div class="bank-card">
                 <div style="display: flex; justify-content: space-between;">
                     <span>🏦 ОБЩИЙ БАНК</span>
-                    <button onclick="window.setBank()">✏️</button>
+                    ${isAdmin() ? '<button onclick="window.setBank()">✏️</button>' : ''}
                 </div>
-                <div class="bank-amount">${state.bank} ₽</div>
+                <div class="bank-amount">${appState.bank} ₽</div>
                 <div style="display: flex; gap: 10px; margin-top: 12px;">
                     <span style="color: #3fb950;">✅ +100₽</span>
                     <span style="color: #f85149;">❌ +200₽</span>
@@ -928,22 +1109,21 @@
             </div>
             
             <div style="background: #161b22; padding: 10px; border-radius: 12px; margin-bottom: 16px;">
-                <p style="margin-bottom: 6px;">👤 Тренируется: <strong>${unlockedPlayer === 'me' ? state.profile.name : unlockedPlayer === 'partner' ? state.partner.name : 'Никто'}</strong></p>
-                ${!unlockedPlayer ? '<p style="color: #f85149; font-size: 13px;">⚠️ Зайдите в Настройки → выберите профиль</p>' : ''}
+                <p>👤 Тренируется: <strong>${currentPlayer === 'admin' ? FIXED_NAMES.admin : FIXED_NAMES.player2}</strong></p>
             </div>
             
             <div style="background: #161b22; padding: 10px; border-radius: 12px; margin-bottom: 16px;">
-                <input type="date" value="${state.selectedDate}" onchange="state.selectedDate=this.value" 
+                <input type="date" value="${appState.selectedDate}" onchange="appState.selectedDate=this.value" 
                        style="background: #0d1117; border: 1px solid #30363d; color: white; padding: 8px; border-radius: 8px; width: 100%;">
             </div>
             
             <div style="background: #21262d; padding: 12px; border-radius: 16px; margin-bottom: 16px; border-left: 6px solid #f0883e;">
-                ${day.name} • День ${state.currentDayIndex+1}/3
+                ${day.name} • День ${appState.currentDayIndex+1}/3
             </div>
         `;
-
+        
         day.groups.forEach(group => {
-            const exs = state.currentExercises.filter(e => e.group === group);
+            const exs = appState.currentExercises.filter(e => e.group === group);
             html += `<h3 style="margin: 12px 0;">${group} <button onclick="window.addExercise('${group}')" style="margin-left: 10px;">➕</button></h3>`;
             
             if (exs.length === 0) {
@@ -977,19 +1157,17 @@
                 });
             }
         });
-
-        const isUnlocked = !!unlockedPlayer;
+        
         html += `
             <div style="display: flex; gap: 10px; margin: 20px 0;">
-                <button class="btn-primary" onclick="window.finishTraining(true)" style="flex: 1; padding: 16px; ${!isUnlocked ? 'opacity: 0.5;' : ''}">✅ ВЫПОЛНЕНО</button>
-                <button class="btn-danger" onclick="window.finishTraining(false)" style="flex: 1; padding: 16px; ${!isUnlocked ? 'opacity: 0.5;' : ''}">❌ ПРОПУСК</button>
+                <button class="btn-primary" onclick="window.finishTraining(true)" style="flex: 1; padding: 16px;">✅ ВЫПОЛНЕНО</button>
+                <button class="btn-danger" onclick="window.finishTraining(false)" style="flex: 1; padding: 16px;">❌ ПРОПУСК</button>
             </div>
-            ${!isUnlocked ? '<p style="color: #f85149; text-align: center;">🔒 Зайдите в Настройки и выберите профиль</p>' : ''}
         `;
         
         return html;
     }
-
+    
     function renderCalendarTab() {
         const year = calendarMonth.getFullYear();
         const month = calendarMonth.getMonth();
@@ -1006,13 +1184,8 @@
             </div>
             
             <div class="calendar-grid">
-                <div class="calendar-day-header">Пн</div>
-                <div class="calendar-day-header">Вт</div>
-                <div class="calendar-day-header">Ср</div>
-                <div class="calendar-day-header">Чт</div>
-                <div class="calendar-day-header">Пт</div>
-                <div class="calendar-day-header">Сб</div>
-                <div class="calendar-day-header">Вс</div>
+                <div class="calendar-day-header">Пн</div><div class="calendar-day-header">Вт</div><div class="calendar-day-header">Ср</div>
+                <div class="calendar-day-header">Чт</div><div class="calendar-day-header">Пт</div><div class="calendar-day-header">Сб</div><div class="calendar-day-header">Вс</div>
         `;
         
         for (let i = 1; i < startDay; i++) {
@@ -1024,7 +1197,7 @@
         
         for (let d = 1; d <= lastDay.getDate(); d++) {
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const workout = getWorkoutForDate(dateStr);
+            const workout = appState.schedule.find(w => w.date === dateStr);
             const isToday = dateStr === today;
             
             const checkDate = new Date(year, month, d);
@@ -1058,7 +1231,7 @@
         if (isAdmin()) {
             const todayForInput = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             html += `
-                <div class="workout-editor">
+                <div style="background: #161b22; border-radius: 16px; padding: 16px; margin-top: 20px;">
                     <h3>✏️ Редактор расписания</h3>
                     <div style="display: flex; gap: 8px; margin: 12px 0;">
                         <input type="date" id="newWorkoutDate" class="settings-input" style="flex: 1;" value="${todayForInput}">
@@ -1071,7 +1244,7 @@
                     <button class="btn-primary" onclick="window.addWorkout()" style="width: 100%;">➕ Добавить тренировку</button>
                     
                     <h4 style="margin: 20px 0 10px;">📋 Запланировано:</h4>
-                    ${state.schedule.sort((a,b) => a.date.localeCompare(b.date)).map((w, i) => `
+                    ${appState.schedule.sort((a,b) => a.date.localeCompare(b.date)).map((w, i) => `
                         <div class="workout-item">
                             <div>
                                 <span>${w.date}</span>
@@ -1080,26 +1253,20 @@
                             <button onclick="window.removeWorkout(${i})" class="btn-danger" style="padding: 4px 8px;">🗑️</button>
                         </div>
                     `).join('')}
-                    ${state.schedule.length === 0 ? '<p style="color: #8b949e;">Нет запланированных тренировок</p>' : ''}
                 </div>
             `;
-        } else {
-            html += `<p style="color: #8b949e; text-align: center; margin-top: 20px;">🔒 Редактирование только для ${state.profile.name}</p>`;
         }
         
         return html;
     }
-
+    
     function renderHistoryTab() {
         let html = `
             <div style="background: #161b22; border-radius: 16px; padding: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h2>📜 Вся история</h2>
-                    ${isAdmin() ? '<span style="color: #9e6a03; font-size: 12px;">👑 Режим админа</span>' : ''}
-                </div>
+                <h2>📜 Вся история</h2>
         `;
         
-        const allHistory = [...state.history].sort((a, b) => new Date(b.date) - new Date(a.date));
+        const allHistory = [...appState.history].sort((a, b) => new Date(b.date) - new Date(a.date));
         
         if (allHistory.length === 0) {
             html += `<p style="color: #8b949e; text-align: center; padding: 20px;">История пуста</p>`;
@@ -1114,7 +1281,6 @@
                     const historyId = `all_hist_${h.id || idx}`;
                     const isExpanded = expandedHistory[historyId] || false;
                     const statusIcon = h.completed ? '✅' : '❌';
-                    const deleteId = h.id !== undefined ? h.id : `index_${idx}`;
                     
                     html += `
                         <div class="history-item">
@@ -1125,7 +1291,7 @@
                                 </div>
                                 <div>
                                     <span>${statusIcon}</span>
-                                    ${isAdmin() ? `<button onclick="window.deleteHistoryEntry('${deleteId}', ${idx})" class="delete-history-btn">🗑️</button>` : ''}
+                                    ${isAdmin() ? `<button onclick="window.deleteHistoryEntry('${h.id}', ${idx})" class="delete-history-btn">🗑️</button>` : ''}
                                 </div>
                             </div>
                             <div class="history-player">
@@ -1162,14 +1328,11 @@
         html += `</div>`;
         return html;
     }
-
+    
     function renderBattleTab() {
-        const my = state.profile.progress;
-        const pt = state.partner.progress;
-        const leader = my > pt ? state.profile.name : pt > my ? state.partner.name : 'Ничья';
-        
-        const myWorkouts = state.history.filter(h => h.player === 'me' && h.completed).length;
-        const partnerWorkouts = state.history.filter(h => h.player === 'partner' && h.completed).length;
+        const my = pairData.admin?.progress || 0;
+        const pt = pairData.player2?.progress || 0;
+        const leader = my > pt ? FIXED_NAMES.admin : pt > my ? FIXED_NAMES.player2 : 'Ничья';
         
         let html = `
             <div style="background: #161b22; border-radius: 16px; padding: 16px;">
@@ -1177,21 +1340,15 @@
                 
                 <div style="background: #0d1117; padding: 12px; border-radius: 10px; margin: 12px 0;">
                     <div style="display: flex; justify-content: space-between;">
-                        <span>${state.profile.name}</span>
+                        <span>${FIXED_NAMES.admin} 👑</span>
                         <span style="color: #3fb950; font-size: 24px; font-weight: bold;">+${my.toFixed(1)} кг</span>
-                    </div>
-                    <div style="color: #8b949e; font-size: 14px; margin-top: 4px;">
-                        ${myWorkouts} тренировок
                     </div>
                 </div>
                 
                 <div style="background: #0d1117; padding: 12px; border-radius: 10px; margin: 12px 0;">
                     <div style="display: flex; justify-content: space-between;">
-                        <span>${state.partner.name}</span>
+                        <span>${FIXED_NAMES.player2}</span>
                         <span style="color: #f0883e; font-size: 24px; font-weight: bold;">+${pt.toFixed(1)} кг</span>
-                    </div>
-                    <div style="color: #8b949e; font-size: 14px; margin-top: 4px;">
-                        ${partnerWorkouts} тренировок
                     </div>
                 </div>
                 
@@ -1204,30 +1361,24 @@
         if (isAdmin()) {
             html += `
                 <div class="admin-panel">
-                    <div class="admin-title">
-                        <span>👑 Админ-панель</span>
+                    <div class="admin-title">👑 Админ-панель</div>
+                    
+                    <div class="progress-edit">
+                        <span>${FIXED_NAMES.admin}:</span>
+                        <input type="number" id="editProgress1" value="${my.toFixed(1)}" step="0.5">
+                        <button onclick="window.updateProgress('admin')" class="btn-sm btn-primary">✓</button>
                     </div>
                     
                     <div class="progress-edit">
-                        <span style="min-width: 80px;">${state.profile.name}:</span>
-                        <input type="number" id="editProgress1" value="${my.toFixed(1)}" step="0.5" style="flex: 1;">
-                        <button onclick="window.updateProgress('me')" class="btn-sm btn-primary">✓</button>
-                    </div>
-                    
-                    <div class="progress-edit">
-                        <span style="min-width: 80px;">${state.partner.name}:</span>
-                        <input type="number" id="editProgress2" value="${pt.toFixed(1)}" step="0.5" style="flex: 1;">
-                        <button onclick="window.updateProgress('partner')" class="btn-sm btn-primary">✓</button>
+                        <span>${FIXED_NAMES.player2}:</span>
+                        <input type="number" id="editProgress2" value="${pt.toFixed(1)}" step="0.5">
+                        <button onclick="window.updateProgress('player2')" class="btn-sm btn-primary">✓</button>
                     </div>
                     
                     <div style="display: flex; gap: 8px; margin-top: 16px;">
                         <button onclick="window.recalculateProgress()" class="btn-warning" style="flex: 1;">🔄 Пересчитать</button>
-                        <button onclick="window.resetAllProgress()" class="btn-danger" style="flex: 1;">⚠️ Сбросить всё</button>
+                        <button onclick="window.resetAllProgress()" class="btn-danger" style="flex: 1;">⚠️ Сбросить</button>
                     </div>
-                    <p style="color: #8b949e; font-size: 11px; margin-top: 8px; text-align: center;">
-                        Пересчитать — восстановит прогресс из истории<br>
-                        Сбросить — обнулит прогресс обоих игроков
-                    </p>
                 </div>
             `;
         }
@@ -1235,45 +1386,19 @@
         html += `</div>`;
         return html;
     }
-
+    
     function renderSettingsTab() {
         return `
             <div style="background: #161b22; border-radius: 16px; padding: 16px;">
                 <h2>⚙️ Настройки</h2>
                 
-                <h3 style="margin: 20px 0 10px;">👤 Выбор профиля</h3>
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <button class="who-btn ${unlockedPlayer === 'me' ? 'active' : ''}" onclick="window.switchPlayer('me')" style="flex: 1;">
-                        ${state.profile.name} ${unlockedPlayer === 'me' ? '✅' : ''}
-                    </button>
-                    <button class="who-btn ${unlockedPlayer === 'partner' ? 'active' : ''}" onclick="window.switchPlayer('partner')" style="flex: 1;">
-                        ${state.partner.name} ${unlockedPlayer === 'partner' ? '✅' : ''}
-                    </button>
+                <div style="margin: 20px 0; padding: 16px; background: #0d1117; border-radius: 12px;">
+                    <p><strong>Пара:</strong> ${FIXED_NAMES.admin} и ${FIXED_NAMES.player2}</p>
+                    <p><strong>Код приглашения:</strong> ${pairData?.inviteCode || INVITE_CODE}</p>
+                    <p><strong>Вы вошли как:</strong> ${currentPlayer === 'admin' ? FIXED_NAMES.admin + ' 👑' : FIXED_NAMES.player2}</p>
                 </div>
-                ${!unlockedPlayer ? '<p style="color: #f85149; margin-bottom: 20px;">Выберите профиль для тренировки</p>' : ''}
                 
-                <h3 style="margin: 20px 0 10px;">${state.profile.name} ${state.profile.isAdmin ? '👑' : ''}</h3>
-                <p style="color: #8b949e;">PIN (4 цифры):</p>
-                <input type="password" id="pin1" class="settings-input" placeholder="****" maxlength="4" value="${state.profile.pin}">
-                
-                <h3 style="margin: 20px 0 10px;">${state.partner.name}</h3>
-                <p style="color: #8b949e;">PIN (4 цифры):</p>
-                <input type="password" id="pin2" class="settings-input" placeholder="****" maxlength="4" value="${state.partner.pin}">
-                
-                <button class="btn-primary" onclick="window.savePins()" style="width: 100%; margin: 10px 0;">💾 Сохранить PIN-коды</button>
-                
-                <h3 style="margin: 20px 0 10px;">☁️ GitHub</h3>
-                <p style="color: #8b949e;">Token:</p>
-                <input type="password" id="tokenInput" class="settings-input" placeholder="ghp_..." value="${GITHUB_TOKEN}">
-                <button class="btn-primary" onclick="window.saveToken()" style="width: 100%;">💾 Сохранить токен</button>
-                <button class="btn-warning" onclick="window.syncNow()" style="width: 100%; margin-top: 8px;">🔄 Синхронизировать сейчас</button>
-                
-                <div style="margin-top: 20px; padding: 12px; background: #1a2329; border-radius: 10px;">
-                    <p>👤 Выберите профиль выше, чтобы тренироваться</p>
-                    <p>👁️ Нажмите на ${state.partner.name} в шапке — посмотрите его историю</p>
-                    <p>👑 ${state.profile.name} — администратор</p>
-                    <p>📱 Статусы синхронизируются автоматически</p>
-                </div>
+                <button class="btn-warning" onclick="window.syncNow()" style="width: 100%;">🔄 Синхронизировать</button>
                 
                 <div class="about-section">
                     <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 8px;">
@@ -1282,209 +1407,163 @@
                     </div>
                     <div class="about-text">
                         Приложение сделано Арви для личного использования.<br>
-                        Никакого коммерческого смысла программа не преследует.<br>
-                        Тренируйтесь с умом и прогрессируйте! 💪
+                        Арви (админ) и Рейкин (игрок 2)<br>
+                        Тренируйтесь с умом! 💪
                     </div>
-                    <div class="about-author">
-                        © 2026 Gym Battle
-                    </div>
+                    <div class="about-author">© 2026 Gym Battle</div>
                 </div>
             </div>
         `;
     }
+    
+    function groupHistoryByMonth(historyItems) {
+        const groups = {};
+        historyItems.forEach(h => {
+            const date = new Date(h.date);
+            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+            if (!groups[monthKey]) {
+                groups[monthKey] = { year: date.getFullYear(), month: date.getMonth(), items: [] };
+            }
+            groups[monthKey].items.push(h);
+        });
+        return Object.values(groups).sort((a, b) => b.year - a.year || b.month - a.month);
+    }
 
-    // Глобальные функции
-    window.switchTab = (tab) => { 
-        viewingPartnerHistory = false;
-        currentTab = tab; 
-        render(); 
-    };
-    window.switchPlayer = (p) => switchPlayer(p);
-    window.finishTraining = (isDone) => finishTraining(isDone);
-    
-    window.setStatus = (status) => updateStatus(status);
-    
-    window.syncNow = async () => {
-        if (!GITHUB_TOKEN) {
-            alert('Сначала сохраните GitHub токен в настройках!');
-            return;
+    // ---------- ГЛОБАЛЬНЫЕ ФУНКЦИИ ----------
+    window.render = () => {
+        if (isAuthenticated && pairData) {
+            renderMainApp();
+        } else {
+            renderStartScreen();
         }
-        
-        // Сначала загружаем из Gist
+    };
+    
+    window.switchTab = (tab) => { currentTab = tab; render(); };
+    window.setStatus = (status) => updateStatus(status);
+    window.finishTraining = (isDone) => finishTraining(isDone);
+    window.syncNow = async () => {
         await loadFromGist();
         render();
-        alert('✅ Данные синхронизированы!');
+        alert('✅ Синхронизировано!');
     };
+    window.viewPartnerHistory = () => { viewingPartnerHistory = true; render(); };
+    window.backFromHistory = () => { viewingPartnerHistory = false; render(); };
+    window.toggleHistory = (id) => { expandedHistory[id] = !expandedHistory[id]; render(); };
     
     window.prevMonth = () => { calendarMonth.setMonth(calendarMonth.getMonth() - 1); render(); };
     window.nextMonth = () => { calendarMonth.setMonth(calendarMonth.getMonth() + 1); render(); };
     
     window.selectDate = (dateStr, workoutType) => {
-        state.selectedDate = dateStr;
+        appState.selectedDate = dateStr;
         if (workoutType) {
-            const typeIndex = DAY_CONFIG.findIndex(d => d.type === workoutType);
-            if (typeIndex >= 0) {
-                state.currentDayIndex = typeIndex;
-                loadExercises();
-            }
+            const idx = DAY_CONFIG.findIndex(d => d.type === workoutType);
+            if (idx >= 0) { appState.currentDayIndex = idx; loadExercises(); }
         }
         currentTab = 'training';
         viewingPartnerHistory = false;
         render();
     };
     
-    window.toggleHistory = (historyId) => {
-        expandedHistory[historyId] = !expandedHistory[historyId];
-        render();
+    window.setBank = () => {
+        if (!isAdmin()) return;
+        const b = prompt('Сумма:', appState.bank);
+        if (b !== null && !isNaN(parseFloat(b))) { appState.bank = parseFloat(b); saveAppState(); render(); }
     };
     
-    window.deleteHistoryEntry = (historyId, fallbackIndex) => {
-        if (!isAdmin()) {
-            alert('Только администратор может удалять записи!');
-            return;
+    window.addExercise = (group) => {
+        const name = prompt('Название:');
+        if (name) {
+            appState.currentExercises.push({ id: Date.now() + Math.random() + '', group, name, sets: [{ weight: 20, reps: 15 }] });
+            render();
         }
-        
-        if (confirm('Удалить эту запись из истории?')) {
-            const beforeLength = state.history.length;
-            state.history = state.history.filter(h => String(h.id) !== String(historyId));
-            
-            if (state.history.length === beforeLength && fallbackIndex !== undefined) {
-                state.history.splice(fallbackIndex, 1);
+    };
+    window.deleteEx = (id) => { appState.currentExercises = appState.currentExercises.filter(e => e.id !== id); render(); };
+    window.addSet = (id) => {
+        const ex = appState.currentExercises.find(e => e.id === id);
+        if (ex) { ex.sets.push({ weight: 20, reps: 12 }); render(); }
+    };
+    window.removeSet = (id, idx) => {
+        const ex = appState.currentExercises.find(e => e.id === id);
+        if (ex && ex.sets.length > 1) { ex.sets.splice(idx, 1); render(); }
+    };
+    window.updateSet = (id, idx, field, val) => {
+        const ex = appState.currentExercises.find(e => e.id === id);
+        if (ex?.sets[idx]) ex.sets[idx][field] = parseFloat(val) || 0;
+    };
+    window.updateExName = (id, name) => {
+        const ex = appState.currentExercises.find(e => e.id === id);
+        if (ex) ex.name = name;
+    };
+    
+    window.addWorkout = () => {
+        if (!isAdmin()) return;
+        const date = document.getElementById('newWorkoutDate')?.value;
+        const type = document.getElementById('newWorkoutType')?.value;
+        const desc = { spina: 'Спина+Трицепс', plechi: 'Плечи+Пресс', grud: 'Грудь+Бицепс' };
+        if (date && type) {
+            appState.schedule.push({ date, type, description: desc[type] });
+            saveAppState();
+            render();
+        }
+    };
+    window.removeWorkout = (i) => { appState.schedule.splice(i, 1); saveAppState(); render(); };
+    
+    window.deleteHistoryEntry = (id, fallbackIdx) => {
+        if (!isAdmin()) return;
+        if (confirm('Удалить запись?')) {
+            const before = appState.history.length;
+            appState.history = appState.history.filter(h => String(h.id) !== String(id));
+            if (appState.history.length === before && fallbackIdx !== undefined) {
+                appState.history.splice(fallbackIdx, 1);
             }
-            
-            recalculateProgress();
-            saveToLocal();
-            syncWithGist();
+            saveAppState();
             render();
         }
     };
     
     window.updateProgress = (player) => {
-        if (!isAdmin()) {
-            alert('Только администратор!');
-            return;
-        }
-        
-        const input = player === 'me' ? document.getElementById('editProgress1') : document.getElementById('editProgress2');
-        const newValue = parseFloat(input.value);
-        
-        if (!isNaN(newValue)) {
-            if (player === 'me') {
-                state.profile.progress = newValue;
-            } else {
-                state.partner.progress = newValue;
-            }
-            saveToLocal();
+        if (!isAdmin()) return;
+        const input = player === 'admin' ? document.getElementById('editProgress1') : document.getElementById('editProgress2');
+        const val = parseFloat(input?.value);
+        if (!isNaN(val)) {
+            if (player === 'admin') pairData.admin.progress = val;
+            else pairData.player2.progress = val;
+            savePairToStorage();
             syncWithGist();
             render();
         }
     };
     
     window.recalculateProgress = () => {
-        if (!isAdmin()) {
-            alert('Только администратор!');
-            return;
-        }
-        
-        if (confirm('Пересчитать прогресс на основе истории?')) {
-            recalculateProgress();
-            saveToLocal();
+        if (!isAdmin()) return;
+        if (confirm('Пересчитать прогресс из истории?')) {
+            pairData.admin.progress = 0;
+            pairData.player2.progress = 0;
+            appState.history.forEach(h => {
+                if (h.completed) {
+                    if (h.player === 'admin') pairData.admin.progress += h.progress || 2.5;
+                    else pairData.player2.progress += h.progress || 2.5;
+                }
+            });
+            savePairToStorage();
             syncWithGist();
             render();
         }
     };
     
     window.resetAllProgress = () => {
-        if (!isAdmin()) {
-            alert('Только администратор!');
-            return;
-        }
-        
-        if (confirm('ВНИМАНИЕ! Полностью сбросить прогресс обоих игроков?')) {
-            state.profile.progress = 0;
-            state.partner.progress = 0;
-            saveToLocal();
+        if (!isAdmin()) return;
+        if (confirm('Сбросить весь прогресс?')) {
+            pairData.admin.progress = 0;
+            pairData.player2.progress = 0;
+            savePairToStorage();
             syncWithGist();
             render();
         }
     };
-    
-    window.addWorkout = () => {
-        const date = document.getElementById('newWorkoutDate')?.value;
-        const type = document.getElementById('newWorkoutType')?.value;
-        const descriptions = { spina: 'Спина+Трицепс', plechi: 'Плечи+Пресс', grud: 'Грудь+Бицепс' };
-        if (date && type) {
-            addToSchedule(date, type, descriptions[type]);
-        }
-    };
-    
-    window.removeWorkout = (index) => removeFromSchedule(index);
-    
-    window.editProfile = () => {
-        const n = prompt('Ник:', state.profile.name);
-        if (n) { state.profile.name = n; saveToLocal(); syncWithGist(); render(); }
-    };
-    window.editPartner = () => {
-        const n = prompt('Ник соперника:', state.partner.name);
-        if (n) { state.partner.name = n; saveToLocal(); syncWithGist(); render(); }
-    };
-    window.setBank = () => {
-        const b = prompt('Сумма в банке:', state.bank);
-        if (b !== null && !isNaN(parseFloat(b))) { state.bank = parseFloat(b); saveToLocal(); syncWithGist(); render(); }
-    };
-    window.savePins = () => {
-        const pin1 = document.getElementById('pin1')?.value || '';
-        const pin2 = document.getElementById('pin2')?.value || '';
-        state.profile.pin = pin1;
-        state.partner.pin = pin2;
-        saveToLocal();
-        alert('PIN-коды сохранены!');
-    };
-    window.saveToken = () => {
-        const token = document.getElementById('tokenInput')?.value.trim() || '';
-        if (token) {
-            GITHUB_TOKEN = token;
-            localStorage.setItem('gym_github_token', token);
-            alert('Токен сохранён!');
-        }
-    };
-    
-    window.addExercise = (group) => {
-        const name = prompt('Название:');
-        if (name) {
-            state.currentExercises.push({ id: Date.now() + Math.random() + '', group, name, sets: [{ weight: 20, reps: 15 }] });
-            render();
-        }
-    };
-    window.deleteEx = (id) => {
-        state.currentExercises = state.currentExercises.filter(e => e.id !== id);
-        render();
-    };
-    window.addSet = (id) => {
-        const ex = state.currentExercises.find(e => e.id === id);
-        if (ex) { ex.sets.push({ weight: 20, reps: 12 }); render(); }
-    };
-    window.removeSet = (id, idx) => {
-        const ex = state.currentExercises.find(e => e.id === id);
-        if (ex && ex.sets.length > 1) { ex.sets.splice(idx, 1); render(); }
-    };
-    window.updateSet = (id, idx, field, val) => {
-        const ex = state.currentExercises.find(e => e.id === id);
-        if (ex && ex.sets[idx]) { ex.sets[idx][field] = parseFloat(val) || 0; }
-    };
-    window.updateExName = (id, name) => {
-        const ex = state.currentExercises.find(e => e.id === id);
-        if (ex) ex.name = name;
-    };
 
-    loadFromLocal();
-    initDemoData();
+    // Запуск
     render();
-    
-    // Авто-синхронизация при загрузке
-    if (GITHUB_TOKEN) {
-        setTimeout(() => loadFromGist().then(() => render()), 500);
-    }
 })();
 </script>
 </body>
