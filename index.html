@@ -3,13 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gym Battle Pro v0.4.1</title>
+    <title>Gym Battle Pro v0.5.0</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        /* Плавные переходы для всех цветов */
+        body, div, button, input, select, textarea, .card, .profile-section, .bank-card, 
+        .tabs, .tab, .calendar-day, .history-item, .start-screen, .settings-input, .who-btn {
+            transition: background-color 0.25s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        /* Тёмная тема (по умолчанию) */
+        body {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --bg-input: #0d1117;
+            --bg-card: #161b22;
+            --bg-hover: #1a2329;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-accent: #f0883e;
+            --border-primary: #30363d;
+            --border-accent: #f0883e;
+            --success: #238636;
+            --success-light: #2ea043;
+            --danger: #da3633;
+            --danger-light: #f85149;
+            --warning: #9e6a03;
+            --warning-light: #d29922;
+            --admin-badge: #9e6a03;
+            --profile-avatar: #238636;
+            --gradient-start: #1a2e22;
+            --gradient-end: #0d1f15;
+            --calendar-workout: #1a3322;
+            --shadow: rgba(0,0,0,0.3);
+        }
+        
+        /* Светлая тема */
+        body.theme-light {
+            --bg-primary: #f6f8fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f0f2f5;
+            --bg-input: #ffffff;
+            --bg-card: #ffffff;
+            --bg-hover: #e8eaed;
+            --text-primary: #1a1a2e;
+            --text-secondary: #5c5c70;
+            --text-accent: #d2691e;
+            --border-primary: #d0d7de;
+            --border-accent: #d2691e;
+            --success: #1a7f37;
+            --success-light: #2da44e;
+            --danger: #cf222e;
+            --danger-light: #e5534b;
+            --warning: #9a6700;
+            --warning-light: #bf8700;
+            --admin-badge: #9a6700;
+            --profile-avatar: #1a7f37;
+            --gradient-start: #e6f7e6;
+            --gradient-end: #d4edda;
+            --calendar-workout: #d4edda;
+            --shadow: rgba(0,0,0,0.08);
+        }
+        
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0d1117;
-            color: #c9d1d9;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             padding: 12px;
             min-height: 100vh;
             max-width: 500px;
@@ -21,22 +82,23 @@
         
         /* Стартовые экраны */
         .start-screen {
-            background: #161b22;
+            background: var(--bg-secondary);
             border-radius: 24px;
             padding: 32px 24px;
             text-align: center;
+            box-shadow: 0 4px 12px var(--shadow);
         }
         .app-title {
             font-size: 32px;
             font-weight: 900;
             margin-bottom: 8px;
-            background: linear-gradient(135deg, #3fb950, #f0883e);
+            background: linear-gradient(135deg, var(--success), var(--text-accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
         .app-subtitle {
-            color: #8b949e;
+            color: var(--text-secondary);
             margin-bottom: 32px;
             font-size: 14px;
         }
@@ -47,22 +109,21 @@
         .input-label {
             display: block;
             margin-bottom: 8px;
-            color: #8b949e;
+            color: var(--text-secondary);
             font-size: 14px;
         }
         .start-input {
             width: 100%;
-            background: #0d1117;
-            border: 2px solid #30363d;
-            color: white;
+            background: var(--bg-input);
+            border: 2px solid var(--border-primary);
+            color: var(--text-primary);
             padding: 14px 16px;
             border-radius: 16px;
             font-size: 16px;
             outline: none;
-            transition: border-color 0.2s;
         }
         .start-input:focus {
-            border-color: #f0883e;
+            border-color: var(--border-accent);
         }
         .start-btn {
             width: 100%;
@@ -72,20 +133,28 @@
             font-weight: bold;
             margin-bottom: 12px;
         }
-        .code-display {
-            background: #0d1117;
-            border: 2px dashed #f0883e;
-            border-radius: 16px;
-            padding: 20px;
+        .divider {
+            display: flex;
+            align-items: center;
+            color: var(--text-secondary);
             margin: 20px 0;
-            font-size: 28px;
-            font-weight: bold;
-            letter-spacing: 4px;
-            color: #f0883e;
-            font-family: monospace;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-primary);
+        }
+        .divider span {
+            padding: 0 16px;
+        }
+        .hint-text {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-top: 16px;
         }
         .role-badge {
-            background: #238636;
+            background: var(--success);
             color: white;
             padding: 8px 16px;
             border-radius: 20px;
@@ -94,40 +163,16 @@
             font-size: 18px;
         }
         .role-badge.player2 {
-            background: #9e6a03;
-        }
-        .divider {
-            display: flex;
-            align-items: center;
-            color: #8b949e;
-            margin: 20px 0;
-        }
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #30363d;
-        }
-        .divider span {
-            padding: 0 16px;
-        }
-        .hint-text {
-            color: #8b949e;
-            font-size: 13px;
-            margin-top: 16px;
-        }
-        .error-text {
-            color: #f85149;
-            font-size: 14px;
-            margin-top: 8px;
+            background: var(--warning);
         }
         
         /* Основное приложение */
         .profile-section {
-            background: #161b22;
+            background: var(--bg-secondary);
             border-radius: 16px;
             padding: 16px;
             margin-bottom: 16px;
+            box-shadow: 0 2px 8px var(--shadow);
         }
         .profile-row {
             display: flex;
@@ -138,22 +183,20 @@
         .profile-avatar {
             width: 45px;
             height: 45px;
-            background: #238636;
+            background: var(--profile-avatar);
             border-radius: 25px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 22px;
             font-weight: bold;
-        }
-        .profile-avatar.player2-avatar {
-            background: #9e6a03;
+            color: white;
         }
         .profile-info { flex: 1; min-width: 100px; }
         .profile-name { font-size: 16px; font-weight: bold; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .profile-status-row { 
             font-size: 12px; 
-            color: #8b949e; 
+            color: var(--text-secondary); 
             margin-top: 2px;
             display: flex;
             align-items: center;
@@ -163,13 +206,13 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            background: #1a2329;
+            background: var(--bg-hover);
             padding: 2px 8px;
             border-radius: 20px;
             font-size: 11px;
         }
-        .vs-badge { background: #f0883e; padding: 4px 8px; border-radius: 20px; font-weight: bold; font-size: 12px; }
-        .admin-badge { background: #9e6a03; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 6px; }
+        .vs-badge { background: var(--text-accent); padding: 4px 8px; border-radius: 20px; font-weight: bold; font-size: 12px; color: white; }
+        .admin-badge { background: var(--admin-badge); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 6px; }
         .status-bar {
             display: flex;
             gap: 6px;
@@ -177,9 +220,9 @@
             flex-wrap: wrap;
         }
         .status-btn {
-            background: #21262d;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 12px;
@@ -189,17 +232,19 @@
             gap: 4px;
         }
         .status-btn.active {
-            background: #1a3322;
-            border-color: #238636;
+            background: var(--success);
+            border-color: var(--success-light);
+            color: white;
         }
         .tabs {
             display: flex;
             gap: 4px;
             margin-bottom: 16px;
-            background: #161b22;
+            background: var(--bg-secondary);
             padding: 5px;
             border-radius: 50px;
             overflow-x: auto;
+            box-shadow: 0 2px 8px var(--shadow);
         }
         .tab {
             flex: 1;
@@ -209,47 +254,48 @@
             font-weight: bold;
             cursor: pointer;
             background: transparent;
-            color: #8b949e;
+            color: var(--text-secondary);
             border: none;
             font-size: 11px;
             white-space: nowrap;
         }
-        .tab.active { background: #238636; color: white; }
+        .tab.active { background: var(--success); color: white; }
         .bank-card {
-            background: linear-gradient(145deg, #1a2e22, #0d1f15);
+            background: linear-gradient(145deg, var(--gradient-start), var(--gradient-end));
             border-radius: 20px;
             padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid #2ea043;
+            border: 1px solid var(--success-light);
+            box-shadow: 0 4px 12px var(--shadow);
         }
-        .bank-amount { font-size: 48px; font-weight: 900; color: #a5d6ff; }
+        .bank-amount { font-size: 48px; font-weight: 900; color: var(--text-primary); }
         button {
-            background: #21262d;
+            background: var(--bg-tertiary);
             border: none;
-            color: #c9d1d9;
+            color: var(--text-primary);
             padding: 8px 12px;
             border-radius: 20px;
             font-weight: bold;
             font-size: 14px;
             cursor: pointer;
-            border: 1px solid #30363d;
+            border: 1px solid var(--border-primary);
         }
-        .btn-primary { background: #238636; border-color: #2ea043; color: white; }
-        .btn-danger { background: #da3633; border-color: #f85149; color: white; }
-        .btn-warning { background: #9e6a03; border-color: #d29922; color: white; }
+        .btn-primary { background: var(--success); border-color: var(--success-light); color: white; }
+        .btn-danger { background: var(--danger); border-color: var(--danger-light); color: white; }
+        .btn-warning { background: var(--warning); border-color: var(--warning-light); color: white; }
         .btn-sm { padding: 4px 8px; font-size: 12px; }
         .logout-btn {
             background: transparent;
-            border: 1px solid #f85149;
-            color: #f85149;
+            border: 1px solid var(--danger);
+            color: var(--danger);
             padding: 4px 8px;
             font-size: 11px;
         }
         .settings-input {
             width: 100%;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            color: white;
+            background: var(--bg-input);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
             padding: 12px;
             border-radius: 10px;
             margin: 8px 0;
@@ -257,70 +303,71 @@
         .who-btn {
             flex: 1;
             padding: 12px;
-            background: #21262d;
-            border: 2px solid #30363d;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-primary);
             border-radius: 12px;
             text-align: center;
             cursor: pointer;
         }
-        .who-btn.active { border-color: #238636; background: #1a3322; }
+        .who-btn.active { border-color: var(--success); background: var(--success); color: white; }
         
         /* Календарь и история */
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 16px; }
-        .calendar-day-header { text-align: center; font-weight: bold; color: #8b949e; padding: 8px 0; font-size: 12px; }
+        .calendar-day-header { text-align: center; font-weight: bold; color: var(--text-secondary); padding: 8px 0; font-size: 12px; }
         .calendar-day {
-            background: #161b22;
+            background: var(--bg-secondary);
             border-radius: 8px;
             padding: 8px 4px;
             text-align: center;
             cursor: pointer;
-            border: 1px solid #30363d;
+            border: 1px solid var(--border-primary);
             min-height: 60px;
         }
-        .calendar-day.today { border: 2px solid #f0883e; }
+        .calendar-day.today { border: 2px solid var(--text-accent); }
         .calendar-day.past { opacity: 0.5; }
-        .calendar-day.future { background: #1a2329; }
-        .calendar-day.workout-day { background: #1a3322; border-color: #238636; }
+        .calendar-day.future { background: var(--bg-hover); }
+        .calendar-day.workout-day { background: var(--calendar-workout); border-color: var(--success); }
         .calendar-day-number { font-weight: bold; margin-bottom: 4px; }
-        .calendar-day-label { font-size: 10px; color: #8b949e; }
+        .calendar-day-label { font-size: 10px; color: var(--text-secondary); }
         .calendar-legend { display: flex; gap: 12px; margin: 16px 0; }
         .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
         .legend-color { width: 16px; height: 16px; border-radius: 4px; }
         
         .history-item {
-            background: #161b22;
+            background: var(--bg-secondary);
             border-radius: 12px;
             padding: 12px;
             margin-bottom: 12px;
+            box-shadow: 0 2px 4px var(--shadow);
         }
         .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .history-date { font-weight: bold; }
-        .history-player { color: #8b949e; font-size: 14px; }
-        .history-exercise { background: #0d1117; border-radius: 8px; padding: 10px; margin-top: 8px; }
-        .history-ex-name { font-weight: bold; margin-bottom: 6px; color: #f0883e; }
+        .history-player { color: var(--text-secondary); font-size: 14px; }
+        .history-exercise { background: var(--bg-tertiary); border-radius: 8px; padding: 10px; margin-top: 8px; }
+        .history-ex-name { font-weight: bold; margin-bottom: 6px; color: var(--text-accent); }
         .history-sets { display: flex; flex-wrap: wrap; gap: 8px; }
-        .history-set { background: #21262d; padding: 4px 10px; border-radius: 20px; font-size: 13px; }
-        .expand-btn { background: transparent; color: #8b949e; padding: 4px 8px; font-size: 12px; border: 1px solid #30363d; }
+        .history-set { background: var(--bg-hover); padding: 4px 10px; border-radius: 20px; font-size: 13px; }
+        .expand-btn { background: transparent; color: var(--text-secondary); padding: 4px 8px; font-size: 12px; border: 1px solid var(--border-primary); }
         .month-header {
-            background: #21262d;
+            background: var(--bg-tertiary);
             padding: 10px 16px;
             border-radius: 12px;
             margin: 16px 0 8px;
             font-weight: bold;
-            color: #f0883e;
+            color: var(--text-accent);
         }
         .delete-history-btn {
             background: transparent;
-            border: 1px solid #f85149;
-            color: #f85149;
+            border: 1px solid var(--danger);
+            color: var(--danger);
             padding: 2px 8px;
             font-size: 11px;
             margin-left: 8px;
         }
         .version-badge {
-            background: #1a2329;
-            color: #8b949e;
+            background: var(--bg-hover);
+            color: var(--text-secondary);
             padding: 2px 8px;
             border-radius: 20px;
             font-size: 11px;
@@ -329,32 +376,32 @@
         .about-section {
             margin-top: 24px;
             padding: 16px;
-            background: #1a2329;
+            background: var(--bg-tertiary);
             border-radius: 12px;
             text-align: center;
         }
-        .about-text { color: #8b949e; font-size: 13px; line-height: 1.5; }
-        .about-author { color: #f0883e; font-weight: bold; margin-top: 8px; }
+        .about-text { color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+        .about-author { color: var(--text-accent); font-weight: bold; margin-top: 8px; }
         
         .admin-panel {
             margin-top: 20px;
             padding: 16px;
-            background: #1a2329;
+            background: var(--bg-tertiary);
             border-radius: 12px;
-            border: 1px solid #9e6a03;
+            border: 1px solid var(--warning);
         }
-        .admin-title { color: #d29922; font-weight: bold; margin-bottom: 12px; }
+        .admin-title { color: var(--warning-light); font-weight: bold; margin-bottom: 12px; }
         .progress-edit { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
         .progress-edit input {
             flex: 1;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            color: white;
+            background: var(--bg-input);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
             padding: 8px;
             border-radius: 8px;
         }
         .workout-item {
-            background: #0d1117;
+            background: var(--bg-tertiary);
             padding: 12px;
             border-radius: 10px;
             margin-bottom: 8px;
@@ -363,14 +410,35 @@
             align-items: center;
         }
         .workout-type { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
-        .type-spina { background: #238636; }
-        .type-plechi { background: #9e6a03; }
-        .type-grud { background: #da3633; }
+        .type-spina { background: var(--success); color: white; }
+        .type-plechi { background: var(--warning); color: white; }
+        .type-grud { background: var(--danger); color: white; }
         .back-btn {
             background: transparent;
-            border: 1px solid #f0883e;
-            color: #f0883e;
+            border: 1px solid var(--text-accent);
+            color: var(--text-accent);
             margin-bottom: 12px;
+        }
+        
+        /* Переключатель темы */
+        .theme-selector {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0;
+        }
+        .theme-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-primary);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .theme-btn.active {
+            border-color: var(--success);
+            background: var(--success);
+            color: white;
         }
     </style>
 </head>
@@ -381,7 +449,7 @@
 <script>
 (function() {
     // ---------- КОНФИГУРАЦИЯ ----------
-    const APP_VERSION = '0.4.1-alpha';
+    const APP_VERSION = '0.5.0-alpha';
     const INVITE_CODE = 'ARVI-GYM-2026';
     const PAIR_PASSWORD = 'gym2026';
     const FIXED_NAMES = {
@@ -396,6 +464,32 @@
         training: { icon: '🏋️', text: 'Тренируюсь' },
         skip: { icon: '😴', text: 'Пропущу' }
     };
+    
+    // ---------- ТЕМА (локальная) ----------
+    const THEME_KEY = 'gym_theme';
+    let currentTheme = localStorage.getItem(THEME_KEY) || 'dark';
+    
+    function applyTheme(theme) {
+        document.body.classList.remove('theme-light', 'theme-dark');
+        if (theme === 'light') {
+            document.body.classList.add('theme-light');
+        } else if (theme === 'dark') {
+            // по умолчанию
+        } else if (theme === 'system') {
+            if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.body.classList.add('theme-light');
+            }
+        }
+        currentTheme = theme;
+        localStorage.setItem(THEME_KEY, theme);
+    }
+    
+    // Слушаем изменения системной темы
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+        if (currentTheme === 'system') {
+            applyTheme('system');
+        }
+    });
     
     // ---------- ГЛОБАЛЬНОЕ СОСТОЯНИЕ ----------
     let pairData = null;
@@ -804,7 +898,6 @@
         const hasPair = loadPairFromStorage();
         
         if (!hasPair) {
-            // Экран создания пары
             app.innerHTML = `
                 <div class="start-screen">
                     <div class="app-title">💪 GYM BATTLE</div>
@@ -839,7 +932,6 @@
                 </div>
             `;
         } else {
-            // Стартовый экран с выбором
             app.innerHTML = `
                 <div class="start-screen">
                     <div class="app-title">💪 GYM BATTLE</div>
@@ -847,7 +939,7 @@
                     
                     <button class="start-btn btn-primary" onclick="window.showLoginScreen()">🔓 Войти в пару</button>
                     <button class="start-btn btn-warning" onclick="window.showJoinScreen()">🤝 У меня есть код</button>
-                    <button class="start-btn" onclick="window.showCreateScreen()" style="background: transparent; border-color: #3fb950; color: #3fb950;">✨ Создать новую пару</button>
+                    <button class="start-btn" onclick="window.showCreateScreen()" style="background: transparent; border-color: var(--success); color: var(--success);">✨ Создать новую пару</button>
                     
                     <div class="version-badge" style="margin-top: 20px;">v${APP_VERSION}</div>
                 </div>
@@ -885,7 +977,7 @@
                 
                 <button class="start-btn btn-primary" onclick="window.loginAction()">Войти</button>
                 
-                <button class="start-btn" onclick="window.render()" style="background: transparent; border-color: #f0883e; color: #f0883e;">
+                <button class="start-btn" onclick="window.render()" style="background: transparent; border-color: var(--text-accent); color: var(--text-accent);">
                     ← Назад
                 </button>
             </div>
@@ -916,7 +1008,7 @@
                 
                 <button class="start-btn btn-primary" onclick="window.createPairAction()">Создать пару</button>
                 
-                <button class="start-btn" onclick="window.render()" style="background: transparent; border-color: #f0883e; color: #f0883e;">
+                <button class="start-btn" onclick="window.render()" style="background: transparent; border-color: var(--text-accent); color: var(--text-accent);">
                     ← Назад
                 </button>
                 
@@ -931,14 +1023,8 @@
     window.selectLoginRole = (role) => {
         currentPlayer = role;
         localStorage.setItem('gym_last_player', role);
-        
-        // Обновляем активную кнопку
         document.querySelectorAll('.who-btn').forEach((btn, i) => {
-            if ((i === 0 && role === 'admin') || (i === 1 && role === 'player2')) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
+            btn.classList.toggle('active', (i === 0 && role === 'admin') || (i === 1 && role === 'player2'));
         });
     };
     
@@ -985,7 +1071,7 @@
                 
                 <button class="start-btn btn-primary" onclick="window.joinAction()">Присоединиться</button>
                 
-                <button class="start-btn" onclick="window.render()" style="background: transparent; border-color: #f0883e; color: #f0883e;">
+                <button class="start-btn" onclick="window.render()" style="background: transparent; border-color: var(--text-accent); color: var(--text-accent);">
                     ← Назад
                 </button>
                 
@@ -1020,15 +1106,8 @@
     
     window.loginAction = () => {
         const pin = document.getElementById('loginPin')?.value.trim();
-        
-        if (!pin) {
-            alert('Введите PIN!');
-            return;
-        }
-        
-        if (loginWithPin(pin)) {
-            render();
-        }
+        if (!pin) { alert('Введите PIN!'); return; }
+        if (loginWithPin(pin)) render();
     };
 
     // ---------- РЕНДЕР ОСНОВНОГО ПРИЛОЖЕНИЯ ----------
@@ -1042,11 +1121,11 @@
         let html = `
             <div class="profile-section">
                 <div class="profile-row">
-                    <div class="profile-avatar" style="background: #238636;">${FIXED_NAMES.admin[0]}</div>
+                    <div class="profile-avatar">${FIXED_NAMES.admin[0]}</div>
                     <div class="profile-info">
                         <div class="profile-name">
                             ${FIXED_NAMES.admin}
-                            ${currentPlayer === 'admin' ? '<span style="color: #3fb950;">✓</span>' : ''}
+                            ${currentPlayer === 'admin' ? '<span style="color: var(--success);">✓</span>' : ''}
                             <span class="admin-badge">👑</span>
                         </div>
                         <div class="profile-status-row">
@@ -1058,7 +1137,7 @@
                     <div class="profile-info" style="text-align: right; cursor: pointer;" onclick="window.viewPartnerHistory()">
                         <div class="profile-name">
                             ${FIXED_NAMES.player2}
-                            ${currentPlayer === 'player2' ? '<span style="color: #3fb950;">✓</span>' : ''}
+                            ${currentPlayer === 'player2' ? '<span style="color: var(--success);">✓</span>' : ''}
                         </div>
                         <div class="profile-status-row" style="justify-content: flex-end;">
                             <span>📈 +${(pairData.player2?.progress || 0).toFixed(1)} кг</span>
@@ -1106,14 +1185,14 @@
     function renderPartnerHistoryView() {
         let html = `
             <button class="back-btn" onclick="window.backFromHistory()">← Назад</button>
-            <div style="background: #161b22; border-radius: 16px; padding: 16px;">
+            <div style="background: var(--bg-secondary); border-radius: 16px; padding: 16px;">
                 <h2>📜 Тренировки ${FIXED_NAMES.player2}</h2>
         `;
         
         const partnerHistory = appState.history.filter(h => h.player === 'player2').sort((a, b) => new Date(b.date) - new Date(a.date));
         
         if (partnerHistory.length === 0) {
-            html += `<p style="color: #8b949e; text-align: center; padding: 20px;">${FIXED_NAMES.player2} ещё не тренировался</p>`;
+            html += `<p style="color: var(--text-secondary); text-align: center; padding: 20px;">${FIXED_NAMES.player2} ещё не тренировался</p>`;
         } else {
             const grouped = groupHistoryByMonth(partnerHistory);
             
@@ -1151,9 +1230,7 @@
                                 <div class="history-exercise">
                                     <div class="history-ex-name">${ex.name} (${ex.group})</div>
                                     <div class="history-sets">
-                                        ${ex.sets.map((s, i) => `
-                                            <span class="history-set">${i+1}: ${s.weight} кг × ${s.reps}</span>
-                                        `).join('')}
+                                        ${ex.sets.map((s, i) => `<span class="history-set">${i+1}: ${s.weight} кг × ${s.reps}</span>`).join('')}
                                     </div>
                                 </div>
                             `;
@@ -1180,21 +1257,21 @@
                 </div>
                 <div class="bank-amount">${appState.bank} ₽</div>
                 <div style="display: flex; gap: 10px; margin-top: 12px;">
-                    <span style="color: #3fb950;">✅ +100₽</span>
-                    <span style="color: #f85149;">❌ +200₽</span>
+                    <span style="color: var(--success);">✅ +100₽</span>
+                    <span style="color: var(--danger);">❌ +200₽</span>
                 </div>
             </div>
             
-            <div style="background: #161b22; padding: 10px; border-radius: 12px; margin-bottom: 16px;">
+            <div style="background: var(--bg-secondary); padding: 10px; border-radius: 12px; margin-bottom: 16px;">
                 <p>👤 Тренируется: <strong>${currentPlayer === 'admin' ? FIXED_NAMES.admin : FIXED_NAMES.player2}</strong></p>
             </div>
             
-            <div style="background: #161b22; padding: 10px; border-radius: 12px; margin-bottom: 16px;">
+            <div style="background: var(--bg-secondary); padding: 10px; border-radius: 12px; margin-bottom: 16px;">
                 <input type="date" value="${appState.selectedDate}" onchange="appState.selectedDate=this.value" 
-                       style="background: #0d1117; border: 1px solid #30363d; color: white; padding: 8px; border-radius: 8px; width: 100%;">
+                       style="background: var(--bg-input); border: 1px solid var(--border-primary); color: var(--text-primary); padding: 8px; border-radius: 8px; width: 100%;">
             </div>
             
-            <div style="background: #21262d; padding: 12px; border-radius: 16px; margin-bottom: 16px; border-left: 6px solid #f0883e;">
+            <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 16px; margin-bottom: 16px; border-left: 6px solid var(--text-accent);">
                 ${day.name} • День ${appState.currentDayIndex+1}/3
             </div>
         `;
@@ -1204,14 +1281,14 @@
             html += `<h3 style="margin: 12px 0;">${group} <button onclick="window.addExercise('${group}')" style="margin-left: 10px;">➕</button></h3>`;
             
             if (exs.length === 0) {
-                html += `<p style="color: #8b949e; padding: 12px; text-align: center;">Нет упражнений. Нажмите ➕ чтобы добавить</p>`;
+                html += `<p style="color: var(--text-secondary); padding: 12px; text-align: center;">Нет упражнений. Нажмите ➕ чтобы добавить</p>`;
             } else {
                 exs.forEach(ex => {
                     html += `
-                        <div style="background: #161b22; border-radius: 12px; padding: 12px; margin-bottom: 10px;">
+                        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 12px; margin-bottom: 10px;">
                             <div style="display: flex; gap: 6px; margin-bottom: 10px;">
                                 <input value="${ex.name}" onchange="window.updateExName('${ex.id}', this.value)" 
-                                       style="background: #0d1117; border: 1px solid #30363d; color: white; padding: 8px; border-radius: 8px; width: 100%;">
+                                       style="background: var(--bg-input); border: 1px solid var(--border-primary); color: var(--text-primary); padding: 8px; border-radius: 8px; width: 100%;">
                                 <button onclick="window.deleteEx('${ex.id}')" class="btn-danger">🗑️</button>
                             </div>
                             ${ex.sets.map((s, i) => `
@@ -1219,11 +1296,11 @@
                                     <span style="min-width: 30px;">${i+1}</span>
                                     <input type="number" value="${s.weight}" step="2.5" 
                                            onchange="window.updateSet('${ex.id}', ${i}, 'weight', this.value)"
-                                           style="background: #21262d; border: 1px solid #30363d; color: white; padding: 6px; border-radius: 6px; width: 70px;">
+                                           style="background: var(--bg-tertiary); border: 1px solid var(--border-primary); color: var(--text-primary); padding: 6px; border-radius: 6px; width: 70px;">
                                     <span>кг ×</span>
                                     <input type="number" value="${s.reps}" 
                                            onchange="window.updateSet('${ex.id}', ${i}, 'reps', this.value)"
-                                           style="background: #21262d; border: 1px solid #30363d; color: white; padding: 6px; border-radius: 6px; width: 60px;">
+                                           style="background: var(--bg-tertiary); border: 1px solid var(--border-primary); color: var(--text-primary); padding: 6px; border-radius: 6px; width: 60px;">
                                     <span>раз</span>
                                     <button onclick="window.removeSet('${ex.id}', ${i})" style="margin-left: auto; padding: 4px 8px;">−</button>
                                 </div>
@@ -1265,9 +1342,7 @@
                 <div class="calendar-day-header">Чт</div><div class="calendar-day-header">Пт</div><div class="calendar-day-header">Сб</div><div class="calendar-day-header">Вс</div>
         `;
         
-        for (let i = 1; i < startDay; i++) {
-            html += `<div class="calendar-day" style="opacity: 0.3;"></div>`;
-        }
+        for (let i = 1; i < startDay; i++) html += `<div class="calendar-day" style="opacity: 0.3;"></div>`;
         
         const now = new Date();
         const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -1278,8 +1353,7 @@
             const isToday = dateStr === today;
             
             const checkDate = new Date(year, month, d);
-            const todayDate = new Date();
-            todayDate.setHours(0, 0, 0, 0);
+            const todayDate = new Date(); todayDate.setHours(0,0,0,0);
             const isPast = checkDate < todayDate;
             
             let classes = 'calendar-day';
@@ -1288,27 +1362,16 @@
             if (!isPast && !isToday) classes += ' future';
             if (workout) classes += ' workout-day';
             
-            html += `
-                <div class="${classes}" onclick="window.selectDate('${dateStr}', '${workout?.type || ''}')">
-                    <div class="calendar-day-number">${d}</div>
-                    <div class="calendar-day-label">${workout ? workout.description : ''}</div>
-                </div>
-            `;
+            html += `<div class="${classes}" onclick="window.selectDate('${dateStr}', '${workout?.type || ''}')"><div class="calendar-day-number">${d}</div><div class="calendar-day-label">${workout ? workout.description : ''}</div></div>`;
         }
-        
         html += `</div>`;
         
-        html += `
-            <div class="calendar-legend">
-                <div class="legend-item"><div class="legend-color" style="background: #1a3322;"></div> Тренировка</div>
-                <div class="legend-item"><div class="legend-color" style="border: 2px solid #f0883e;"></div> Сегодня</div>
-            </div>
-        `;
+        html += `<div class="calendar-legend"><div class="legend-item"><div class="legend-color" style="background: var(--calendar-workout);"></div> Тренировка</div><div class="legend-item"><div class="legend-color" style="border: 2px solid var(--text-accent);"></div> Сегодня</div></div>`;
         
         if (isAdmin()) {
             const todayForInput = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             html += `
-                <div style="background: #161b22; border-radius: 16px; padding: 16px; margin-top: 20px;">
+                <div style="background: var(--bg-secondary); border-radius: 16px; padding: 16px; margin-top: 20px;">
                     <h3>✏️ Редактор расписания</h3>
                     <div style="display: flex; gap: 8px; margin: 12px 0;">
                         <input type="date" id="newWorkoutDate" class="settings-input" style="flex: 1;" value="${todayForInput}">
@@ -1321,137 +1384,78 @@
                     <button class="btn-primary" onclick="window.addWorkout()" style="width: 100%;">➕ Добавить тренировку</button>
                     
                     <h4 style="margin: 20px 0 10px;">📋 Запланировано:</h4>
-                    ${appState.schedule.sort((a,b) => a.date.localeCompare(b.date)).map((w, i) => `
+                    ${appState.schedule.sort((a,b)=>a.date.localeCompare(b.date)).map((w,i)=>`
                         <div class="workout-item">
-                            <div>
-                                <span>${w.date}</span>
-                                <span class="workout-type type-${w.type}">${w.description}</span>
-                            </div>
+                            <div><span>${w.date}</span><span class="workout-type type-${w.type}">${w.description}</span></div>
                             <button onclick="window.removeWorkout(${i})" class="btn-danger" style="padding: 4px 8px;">🗑️</button>
                         </div>
                     `).join('')}
                 </div>
             `;
         }
-        
         return html;
     }
     
     function renderHistoryTab() {
-        let html = `
-            <div style="background: #161b22; border-radius: 16px; padding: 16px;">
-                <h2>📜 Вся история</h2>
-        `;
-        
-        const allHistory = [...appState.history].sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        if (allHistory.length === 0) {
-            html += `<p style="color: #8b949e; text-align: center; padding: 20px;">История пуста</p>`;
-        } else {
+        let html = `<div style="background: var(--bg-secondary); border-radius: 16px; padding: 16px;"><h2>📜 Вся история</h2>`;
+        const allHistory = [...appState.history].sort((a,b)=>new Date(b.date)-new Date(a.date));
+        if (allHistory.length===0) html+=`<p style="color: var(--text-secondary); text-align: center; padding: 20px;">История пуста</p>`;
+        else {
             const grouped = groupHistoryByMonth(allHistory);
-            
-            grouped.forEach(group => {
+            grouped.forEach(group=>{
                 const monthName = MONTH_NAMES[group.month];
                 html += `<div class="month-header">${monthName} ${group.year} (${group.items.length} тренировок)</div>`;
-                
-                group.items.forEach((h, idx) => {
-                    const historyId = `all_hist_${h.id || idx}`;
-                    const isExpanded = expandedHistory[historyId] || false;
-                    const statusIcon = h.completed ? '✅' : '❌';
-                    
+                group.items.forEach((h,idx)=>{
+                    const historyId = `all_hist_${h.id||idx}`;
+                    const isExpanded = expandedHistory[historyId]||false;
                     html += `
                         <div class="history-item">
                             <div class="history-header">
-                                <div>
-                                    <span class="history-date">${h.date}</span>
-                                    <span style="margin-left: 10px;">${h.dayName || DAY_CONFIG[h.dayIndex]?.name || 'Тренировка'}</span>
-                                </div>
-                                <div>
-                                    <span>${statusIcon}</span>
-                                    ${isAdmin() ? `<button onclick="window.deleteHistoryEntry('${h.id}', ${idx})" class="delete-history-btn">🗑️</button>` : ''}
-                                </div>
+                                <div><span class="history-date">${h.date}</span><span style="margin-left: 10px;">${h.dayName||DAY_CONFIG[h.dayIndex]?.name||'Тренировка'}</span></div>
+                                <div><span>${h.completed?'✅':'❌'}</span>${isAdmin()?`<button onclick="window.deleteHistoryEntry('${h.id}',${idx})" class="delete-history-btn">🗑️</button>`:''}</div>
                             </div>
-                            <div class="history-player">
-                                ${h.playerName} • ${h.completed ? `+${h.progress} кг` : 'пропуск'}
-                            </div>
-                            
-                            <button class="expand-btn" onclick="window.toggleHistory('${historyId}')" style="margin-top: 8px; width: 100%;">
-                                ${isExpanded ? '▲ Скрыть' : '▼ Показать упражнения'}
-                            </button>
+                            <div class="history-player">${h.playerName} • ${h.completed?`+${h.progress} кг`:'пропуск'}</div>
+                            <button class="expand-btn" onclick="window.toggleHistory('${historyId}')" style="margin-top: 8px; width: 100%;">${isExpanded?'▲ Скрыть':'▼ Показать упражнения'}</button>
                     `;
-                    
-                    if (isExpanded && h.exercises) {
-                        html += `<div style="margin-top: 12px;">`;
-                        h.exercises.forEach(ex => {
-                            html += `
-                                <div class="history-exercise">
-                                    <div class="history-ex-name">${ex.name} (${ex.group})</div>
-                                    <div class="history-sets">
-                                        ${ex.sets.map((s, i) => `
-                                            <span class="history-set">${i+1}: ${s.weight} кг × ${s.reps}</span>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            `;
+                    if(isExpanded && h.exercises){
+                        html+=`<div style="margin-top: 12px;">`;
+                        h.exercises.forEach(ex=>{
+                            html+=`<div class="history-exercise"><div class="history-ex-name">${ex.name} (${ex.group})</div><div class="history-sets">${ex.sets.map((s,i)=>`<span class="history-set">${i+1}: ${s.weight} кг × ${s.reps}</span>`).join('')}</div></div>`;
                         });
-                        html += `</div>`;
+                        html+=`</div>`;
                     }
-                    
-                    html += `</div>`;
+                    html+=`</div>`;
                 });
             });
         }
-        
-        html += `</div>`;
+        html+=`</div>`;
         return html;
     }
     
     function renderBattleTab() {
-        const my = pairData.admin?.progress || 0;
-        const pt = pairData.player2?.progress || 0;
-        const leader = my > pt ? FIXED_NAMES.admin : pt > my ? FIXED_NAMES.player2 : 'Ничья';
-        
+        const my = pairData.admin?.progress||0;
+        const pt = pairData.player2?.progress||0;
+        const leader = my>pt?FIXED_NAMES.admin:pt>my?FIXED_NAMES.player2:'Ничья';
         let html = `
-            <div style="background: #161b22; border-radius: 16px; padding: 16px;">
+            <div style="background: var(--bg-secondary); border-radius: 16px; padding: 16px;">
                 <h2>⚔️ БАТТЛ</h2>
-                
-                <div style="background: #0d1117; padding: 12px; border-radius: 10px; margin: 12px 0;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>${FIXED_NAMES.admin} 👑</span>
-                        <span style="color: #3fb950; font-size: 24px; font-weight: bold;">+${my.toFixed(1)} кг</span>
-                    </div>
+                <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 10px; margin: 12px 0;">
+                    <div style="display: flex; justify-content: space-between;"><span>${FIXED_NAMES.admin} 👑</span><span style="color: var(--success); font-size: 24px; font-weight: bold;">+${my.toFixed(1)} кг</span></div>
                 </div>
-                
-                <div style="background: #0d1117; padding: 12px; border-radius: 10px; margin: 12px 0;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>${FIXED_NAMES.player2}</span>
-                        <span style="color: #f0883e; font-size: 24px; font-weight: bold;">+${pt.toFixed(1)} кг</span>
-                    </div>
+                <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 10px; margin: 12px 0;">
+                    <div style="display: flex; justify-content: space-between;"><span>${FIXED_NAMES.player2}</span><span style="color: var(--text-accent); font-size: 24px; font-weight: bold;">+${pt.toFixed(1)} кг</span></div>
                 </div>
-                
-                <div style="text-align: center; padding: 20px; background: #0d1117; border-radius: 12px; margin-top: 20px;">
-                    <h3>🏆 ${leader} ${leader === 'Ничья' ? '' : 'лидирует!'}</h3>
-                    <p style="font-size: 18px; margin-top: 8px;">Разница: ${Math.abs(my - pt).toFixed(1)} кг</p>
+                <div style="text-align: center; padding: 20px; background: var(--bg-tertiary); border-radius: 12px; margin-top: 20px;">
+                    <h3>🏆 ${leader} ${leader==='Ничья'?'':'лидирует!'}</h3>
+                    <p style="font-size: 18px; margin-top: 8px;">Разница: ${Math.abs(my-pt).toFixed(1)} кг</p>
                 </div>
         `;
-        
-        if (isAdmin()) {
-            html += `
+        if(isAdmin()){
+            html+=`
                 <div class="admin-panel">
                     <div class="admin-title">👑 Админ-панель</div>
-                    
-                    <div class="progress-edit">
-                        <span>${FIXED_NAMES.admin}:</span>
-                        <input type="number" id="editProgress1" value="${my.toFixed(1)}" step="0.5">
-                        <button onclick="window.updateProgress('admin')" class="btn-sm btn-primary">✓</button>
-                    </div>
-                    
-                    <div class="progress-edit">
-                        <span>${FIXED_NAMES.player2}:</span>
-                        <input type="number" id="editProgress2" value="${pt.toFixed(1)}" step="0.5">
-                        <button onclick="window.updateProgress('player2')" class="btn-sm btn-primary">✓</button>
-                    </div>
-                    
+                    <div class="progress-edit"><span>${FIXED_NAMES.admin}:</span><input type="number" id="editProgress1" value="${my.toFixed(1)}" step="0.5"><button onclick="window.updateProgress('admin')" class="btn-sm btn-primary">✓</button></div>
+                    <div class="progress-edit"><span>${FIXED_NAMES.player2}:</span><input type="number" id="editProgress2" value="${pt.toFixed(1)}" step="0.5"><button onclick="window.updateProgress('player2')" class="btn-sm btn-primary">✓</button></div>
                     <div style="display: flex; gap: 8px; margin-top: 16px;">
                         <button onclick="window.recalculateProgress()" class="btn-warning" style="flex: 1;">🔄 Пересчитать</button>
                         <button onclick="window.resetAllProgress()" class="btn-danger" style="flex: 1;">⚠️ Сбросить</button>
@@ -1459,23 +1463,29 @@
                 </div>
             `;
         }
-        
-        html += `</div>`;
+        html+=`</div>`;
         return html;
     }
     
     function renderSettingsTab() {
         return `
-            <div style="background: #161b22; border-radius: 16px; padding: 16px;">
+            <div style="background: var(--bg-secondary); border-radius: 16px; padding: 16px;">
                 <h2>⚙️ Настройки</h2>
                 
-                <div style="margin: 20px 0; padding: 16px; background: #0d1117; border-radius: 12px;">
+                <div style="margin: 20px 0; padding: 16px; background: var(--bg-tertiary); border-radius: 12px;">
                     <p><strong>Пара:</strong> ${FIXED_NAMES.admin} и ${FIXED_NAMES.player2}</p>
                     <p><strong>Код приглашения:</strong> ${pairData?.inviteCode || INVITE_CODE}</p>
-                    <p><strong>Вы вошли как:</strong> ${currentPlayer === 'admin' ? FIXED_NAMES.admin + ' 👑' : FIXED_NAMES.player2}</p>
+                    <p><strong>Вы вошли как:</strong> ${currentPlayer==='admin'?FIXED_NAMES.admin+' 👑':FIXED_NAMES.player2}</p>
                 </div>
                 
-                <button class="btn-warning" onclick="window.syncNow()" style="width: 100%;">🔄 Синхронизировать</button>
+                <h3 style="margin: 20px 0 10px;">🎨 Тема оформления</h3>
+                <div class="theme-selector">
+                    <div class="theme-btn ${currentTheme==='dark'?'active':''}" onclick="window.setTheme('dark')">🌙 Тёмная</div>
+                    <div class="theme-btn ${currentTheme==='light'?'active':''}" onclick="window.setTheme('light')">☀️ Светлая</div>
+                    <div class="theme-btn ${currentTheme==='system'?'active':''}" onclick="window.setTheme('system')">📱 Системная</div>
+                </div>
+                
+                <button class="btn-warning" onclick="window.syncNow()" style="width: 100%; margin-top: 8px;">🔄 Синхронизировать</button>
                 <button class="btn-danger" onclick="window.switchProfile()" style="width: 100%; margin-top: 8px;">🚪 Сменить профиль</button>
                 
                 <div class="about-section">
@@ -1498,149 +1508,58 @@
         const groups = {};
         historyItems.forEach(h => {
             const date = new Date(h.date);
-            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-            if (!groups[monthKey]) {
-                groups[monthKey] = { year: date.getFullYear(), month: date.getMonth(), items: [] };
-            }
-            groups[monthKey].items.push(h);
+            const key = `${date.getFullYear()}-${date.getMonth()}`;
+            if(!groups[key]) groups[key] = { year: date.getFullYear(), month: date.getMonth(), items: [] };
+            groups[key].items.push(h);
         });
-        return Object.values(groups).sort((a, b) => b.year - a.year || b.month - a.month);
+        return Object.values(groups).sort((a,b)=>b.year-a.year||b.month-a.month);
     }
 
     // ---------- ГЛОБАЛЬНЫЕ ФУНКЦИИ ----------
     window.render = () => {
-        if (isAuthenticated && pairData) {
-            renderMainApp();
-        } else {
-            renderStartScreen();
-        }
+        applyTheme(currentTheme);
+        if (isAuthenticated && pairData) renderMainApp();
+        else renderStartScreen();
+    };
+    
+    window.setTheme = (theme) => {
+        applyTheme(theme);
+        render(); // перерисовать для обновления активной кнопки
     };
     
     window.switchTab = (tab) => { currentTab = tab; render(); };
     window.setStatus = (status) => updateStatus(status);
     window.finishTraining = (isDone) => finishTraining(isDone);
-    window.syncNow = async () => {
-        await loadFromGist();
-        render();
-        alert('✅ Синхронизировано!');
-    };
+    window.syncNow = async () => { await loadFromGist(); render(); alert('✅ Синхронизировано!'); };
     window.viewPartnerHistory = () => { viewingPartnerHistory = true; render(); };
     window.backFromHistory = () => { viewingPartnerHistory = false; render(); };
     window.toggleHistory = (id) => { expandedHistory[id] = !expandedHistory[id]; render(); };
-    
-    window.prevMonth = () => { calendarMonth.setMonth(calendarMonth.getMonth() - 1); render(); };
-    window.nextMonth = () => { calendarMonth.setMonth(calendarMonth.getMonth() + 1); render(); };
-    
+    window.prevMonth = () => { calendarMonth.setMonth(calendarMonth.getMonth()-1); render(); };
+    window.nextMonth = () => { calendarMonth.setMonth(calendarMonth.getMonth()+1); render(); };
     window.selectDate = (dateStr, workoutType) => {
         appState.selectedDate = dateStr;
-        if (workoutType) {
-            const idx = DAY_CONFIG.findIndex(d => d.type === workoutType);
-            if (idx >= 0) { appState.currentDayIndex = idx; loadExercises(); }
+        if(workoutType) {
+            const idx = DAY_CONFIG.findIndex(d=>d.type===workoutType);
+            if(idx>=0) { appState.currentDayIndex = idx; loadExercises(); }
         }
-        currentTab = 'training';
-        viewingPartnerHistory = false;
-        render();
+        currentTab='training'; viewingPartnerHistory=false; render();
     };
-    
-    window.setBank = () => {
-        if (!isAdmin()) return;
-        const b = prompt('Сумма:', appState.bank);
-        if (b !== null && !isNaN(parseFloat(b))) { appState.bank = parseFloat(b); saveAppState(); render(); }
-    };
-    
-    window.addExercise = (group) => {
-        const name = prompt('Название:');
-        if (name) {
-            appState.currentExercises.push({ id: Date.now() + Math.random() + '', group, name, sets: [{ weight: 20, reps: 15 }] });
-            render();
-        }
-    };
-    window.deleteEx = (id) => { appState.currentExercises = appState.currentExercises.filter(e => e.id !== id); render(); };
-    window.addSet = (id) => {
-        const ex = appState.currentExercises.find(e => e.id === id);
-        if (ex) { ex.sets.push({ weight: 20, reps: 12 }); render(); }
-    };
-    window.removeSet = (id, idx) => {
-        const ex = appState.currentExercises.find(e => e.id === id);
-        if (ex && ex.sets.length > 1) { ex.sets.splice(idx, 1); render(); }
-    };
-    window.updateSet = (id, idx, field, val) => {
-        const ex = appState.currentExercises.find(e => e.id === id);
-        if (ex?.sets[idx]) ex.sets[idx][field] = parseFloat(val) || 0;
-    };
-    window.updateExName = (id, name) => {
-        const ex = appState.currentExercises.find(e => e.id === id);
-        if (ex) ex.name = name;
-    };
-    
-    window.addWorkout = () => {
-        if (!isAdmin()) return;
-        const date = document.getElementById('newWorkoutDate')?.value;
-        const type = document.getElementById('newWorkoutType')?.value;
-        const desc = { spina: 'Спина+Трицепс', plechi: 'Плечи+Пресс', grud: 'Грудь+Бицепс' };
-        if (date && type) {
-            appState.schedule.push({ date, type, description: desc[type] });
-            saveAppState();
-            render();
-        }
-    };
-    window.removeWorkout = (i) => { appState.schedule.splice(i, 1); saveAppState(); render(); };
-    
-    window.deleteHistoryEntry = (id, fallbackIdx) => {
-        if (!isAdmin()) return;
-        if (confirm('Удалить запись?')) {
-            const before = appState.history.length;
-            appState.history = appState.history.filter(h => String(h.id) !== String(id));
-            if (appState.history.length === before && fallbackIdx !== undefined) {
-                appState.history.splice(fallbackIdx, 1);
-            }
-            saveAppState();
-            render();
-        }
-    };
-    
-    window.updateProgress = (player) => {
-        if (!isAdmin()) return;
-        const input = player === 'admin' ? document.getElementById('editProgress1') : document.getElementById('editProgress2');
-        const val = parseFloat(input?.value);
-        if (!isNaN(val)) {
-            if (player === 'admin') pairData.admin.progress = val;
-            else pairData.player2.progress = val;
-            savePairToStorage();
-            syncWithGist();
-            render();
-        }
-    };
-    
-    window.recalculateProgress = () => {
-        if (!isAdmin()) return;
-        if (confirm('Пересчитать прогресс из истории?')) {
-            pairData.admin.progress = 0;
-            pairData.player2.progress = 0;
-            appState.history.forEach(h => {
-                if (h.completed) {
-                    if (h.player === 'admin') pairData.admin.progress += h.progress || 2.5;
-                    else pairData.player2.progress += h.progress || 2.5;
-                }
-            });
-            savePairToStorage();
-            syncWithGist();
-            render();
-        }
-    };
-    
-    window.resetAllProgress = () => {
-        if (!isAdmin()) return;
-        if (confirm('Сбросить весь прогресс?')) {
-            pairData.admin.progress = 0;
-            pairData.player2.progress = 0;
-            savePairToStorage();
-            syncWithGist();
-            render();
-        }
-    };
+    window.setBank = () => { if(!isAdmin())return; const b=prompt('Сумма:',appState.bank); if(b!==null&&!isNaN(parseFloat(b))){appState.bank=parseFloat(b);saveAppState();render();} };
+    window.addExercise = (group) => { const name=prompt('Название:'); if(name){ appState.currentExercises.push({id:Date.now()+Math.random()+'',group,name,sets:[{weight:20,reps:15}]}); render(); } };
+    window.deleteEx = (id) => { appState.currentExercises = appState.currentExercises.filter(e=>e.id!==id); render(); };
+    window.addSet = (id) => { const ex=appState.currentExercises.find(e=>e.id===id); if(ex){ ex.sets.push({weight:20,reps:12}); render(); } };
+    window.removeSet = (id,idx) => { const ex=appState.currentExercises.find(e=>e.id===id); if(ex&&ex.sets.length>1){ ex.sets.splice(idx,1); render(); } };
+    window.updateSet = (id,idx,field,val) => { const ex=appState.currentExercises.find(e=>e.id===id); if(ex?.sets[idx]) ex.sets[idx][field]=parseFloat(val)||0; };
+    window.updateExName = (id,name) => { const ex=appState.currentExercises.find(e=>e.id===id); if(ex) ex.name=name; };
+    window.addWorkout = () => { if(!isAdmin())return; const date=document.getElementById('newWorkoutDate')?.value; const type=document.getElementById('newWorkoutType')?.value; const desc={spina:'Спина+Трицепс',plechi:'Плечи+Пресс',grud:'Грудь+Бицепс'}; if(date&&type){ appState.schedule.push({date,type,description:desc[type]}); saveAppState(); render(); } };
+    window.removeWorkout = (i) => { appState.schedule.splice(i,1); saveAppState(); render(); };
+    window.deleteHistoryEntry = (id, fallbackIdx) => { if(!isAdmin())return; if(confirm('Удалить запись?')){ const before=appState.history.length; appState.history=appState.history.filter(h=>String(h.id)!==String(id)); if(appState.history.length===before&&fallbackIdx!==undefined) appState.history.splice(fallbackIdx,1); saveAppState(); render(); } };
+    window.updateProgress = (player) => { if(!isAdmin())return; const input=player==='admin'?document.getElementById('editProgress1'):document.getElementById('editProgress2'); const val=parseFloat(input?.value); if(!isNaN(val)){ if(player==='admin') pairData.admin.progress=val; else pairData.player2.progress=val; savePairToStorage(); syncWithGist(); render(); } };
+    window.recalculateProgress = () => { if(!isAdmin())return; if(confirm('Пересчитать прогресс из истории?')){ pairData.admin.progress=0; pairData.player2.progress=0; appState.history.forEach(h=>{ if(h.completed){ if(h.player==='admin') pairData.admin.progress+=h.progress||2.5; else pairData.player2.progress+=h.progress||2.5; } }); savePairToStorage(); syncWithGist(); render(); } };
+    window.resetAllProgress = () => { if(!isAdmin())return; if(confirm('Сбросить весь прогресс?')){ pairData.admin.progress=0; pairData.player2.progress=0; savePairToStorage(); syncWithGist(); render(); } };
 
     // Запуск
+    applyTheme(currentTheme);
     render();
 })();
 </script>
