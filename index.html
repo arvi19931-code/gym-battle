@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gym Battle Pro v0.5.2</title>
+    <title>Gym Battle Pro v0.5.4</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -385,7 +385,7 @@
 <div id="app">Загрузка...</div>
 <script>
 (function() {
-    const APP_VERSION = '0.5.2-alpha';
+    const APP_VERSION = '0.5.4-alpha';
     const INVITE_CODE = 'ARVI-GYM-2026';
     const PAIR_PASSWORD = 'gym2026';
     const FIXED_NAMES = { admin: 'Арви', player2: 'Рейкин' };
@@ -496,56 +496,77 @@
     }
     function isAdmin() { return isAuthenticated && currentPlayer === 'admin'; }
 
-    // Улучшенная синхронизация: при необходимости создаёт Gist
-    async function ensureGist(token, gistId) {
+    async function verifyToken(token) {
         try {
-            // Пробуем загрузить
-            const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
+            const resp = await fetch('https://api.github.com/user', {
                 headers: { 'Authorization': `token ${token}` }
             });
-            if (resp.ok) {
-                const gist = await resp.json();
-                const content = gist.files?.['gym_data.json']?.content;
-                if (content) {
-                    const cloudState = JSON.parse(content);
-                    appState.bank = cloudState.bank || 0;
-                    appState.history = cloudState.history || [];
-                    appState.schedule = cloudState.schedule || [];
-                    if (!pairData) pairData = {};
-                    pairData.admin = pairData.admin || { progress:0, status:'home' };
-                    pairData.player2 = pairData.player2 || { progress:0, status:'home' };
-                    if (cloudState.profile) {
-                        pairData.admin.progress = cloudState.profile.progress || 0;
-                        pairData.admin.status = cloudState.profile.status || 'home';
-                    }
-                    if (cloudState.partner) {
-                        pairData.player2.progress = cloudState.partner.progress || 0;
-                        pairData.player2.status = cloudState.partner.status || 'home';
-                    }
-                    return true;
+            if (!resp.ok) return false;
+            const scopes = resp.headers.get('X-OAuth-Scopes') || '';
+            return scopes.includes('gist');
+        } catch(e) { return false; }
+    }
+
+    async function ensureGist(token, gistId) {
+        try {
+            const tokenValid = await verifyToken(token);
+            if (!tokenValid) {
+                alert('❌ Токен недействителен или не имеет права "gist".\n\nУбедитесь, что при создании токена вы поставили галочку "gist".');
+                return false;
+            }
+            
+            let resp = await fetch(`https://api.github.com/gists/${gistId}`, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+            
+            if (resp.status === 404) {
+                const initState = {
+                    bank: 0,
+                    profile: { name: FIXED_NAMES.admin, progress: 0, status: 'home' },
+                    partner: { name: FIXED_NAMES.player2, progress: 0, status: 'home' },
+                    history: [],
+                    schedule: []
+                };
+                resp = await fetch('https://api.github.com/gists', {
+                    method: 'POST',
+                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        description: 'Gym Battle Data',
+                        public: false,
+                        files: { 'gym_data.json': { content: JSON.stringify(initState) } }
+                    })
+                });
+                if (!resp.ok) throw new Error('Не удалось создать Gist');
+                const newGist = await resp.json();
+                pairData.gistId = newGist.id;
+                savePairToStorage();
+                return true;
+            }
+            
+            if (!resp.ok) throw new Error('Ошибка доступа к Gist');
+            
+            const gist = await resp.json();
+            const content = gist.files?.['gym_data.json']?.content;
+            if (content) {
+                const cloudState = JSON.parse(content);
+                appState.bank = cloudState.bank || 0;
+                appState.history = cloudState.history || [];
+                appState.schedule = cloudState.schedule || [];
+                if (!pairData) pairData = {};
+                pairData.admin = pairData.admin || { progress:0, status:'home' };
+                pairData.player2 = pairData.player2 || { progress:0, status:'home' };
+                if (cloudState.profile) {
+                    pairData.admin.progress = cloudState.profile.progress || 0;
+                    pairData.admin.status = cloudState.profile.status || 'home';
+                }
+                if (cloudState.partner) {
+                    pairData.player2.progress = cloudState.partner.progress || 0;
+                    pairData.player2.status = cloudState.partner.status || 'home';
                 }
             }
-            // Gist не существует или пустой – создаём
-            const initState = {
-                bank: 0,
-                profile: { name: FIXED_NAMES.admin, progress: 0, status: 'home' },
-                partner: { name: FIXED_NAMES.player2, progress: 0, status: 'home' },
-                history: [],
-                schedule: []
-            };
-            await fetch(`https://api.github.com/gists`, {
-                method: 'POST',
-                headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    description: 'Gym Battle Data',
-                    public: false,
-                    files: { 'gym_data.json': { content: JSON.stringify(initState) } }
-                })
-            });
-            // Обновляем gistId в pairData, если создали новый
             return true;
         } catch(e) {
-            console.error('Gist error:', e);
+            alert('❌ Ошибка облака: ' + e.message);
             return false;
         }
     }
@@ -584,8 +605,10 @@
         initDemoData();
         pairData.data = appState;
         savePairToStorage();
-        // Инициализируем Gist
-        await ensureGist(githubToken, gistId);
+        
+        const ok = await ensureGist(githubToken, gistId);
+        if (!ok) { pairData = null; return false; }
+        
         await syncWithGist();
         currentPlayer = 'admin';
         isAuthenticated = true;
@@ -598,30 +621,101 @@
         if (!githubToken) { alert('Введите GitHub Token!'); return false; }
         
         const gistId = githubToken.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0).toString(16).substr(0, 32);
-        // Пытаемся обеспечить существование Gist
-        const ok = await ensureGist(githubToken, gistId);
-        if (!ok) { alert('Не удалось подключиться к облаку. Проверьте токен и интернет.'); return false; }
         
-        pairData = {
-            pairId: 'pair_' + Date.now(),
-            inviteCode: INVITE_CODE,
-            pairPassword: PAIR_PASSWORD,
-            githubToken: githubToken,
-            gistId: gistId,
-            admin: { deviceId: null, name: FIXED_NAMES.admin, pin: null, progress: 0, status: 'home' },
-            player2: { deviceId: deviceId, name: FIXED_NAMES.player2, pin: playerPin, progress: 0, status: 'home' },
-            data: null
-        };
+        const tokenValid = await verifyToken(githubToken);
+        if (!tokenValid) {
+            alert('❌ Токен недействителен или не имеет права "gist".\n\nУбедитесь, что при создании токена вы поставили галочку "gist".');
+            return false;
+        }
         
-        await ensureGist(githubToken, gistId); // загрузит данные в appState
-        pairData.data = appState;
-        savePairToStorage();
-        
-        currentPlayer = 'player2';
-        isAuthenticated = true;
-        saveSession();
-        loadExercises();
-        return true;
+        try {
+            const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
+                headers: { 'Authorization': `token ${githubToken}` }
+            });
+            if (!resp.ok) {
+                if (resp.status === 404) {
+                    alert('❌ Пара не найдена. Попросите админа сначала создать пару.');
+                } else {
+                    alert('❌ Ошибка доступа к облаку. Проверьте токен.');
+                }
+                return false;
+            }
+            
+            const gist = await resp.json();
+            const content = gist.files?.['gym_data.json']?.content;
+            if (!content) {
+                alert('❌ Gist повреждён. Попросите админа синхронизировать пару.');
+                return false;
+            }
+            
+            const cloudState = JSON.parse(content);
+            appState.bank = cloudState.bank || 0;
+            appState.history = cloudState.history || [];
+            appState.schedule = cloudState.schedule || [];
+            
+            // Проверяем, есть ли уже локальная пара
+            const hasLocalPair = loadPairFromStorage();
+            
+            if (!hasLocalPair) {
+                // Первый вход на этом устройстве — создаём новую пару
+                pairData = {
+                    pairId: 'pair_' + Date.now(),
+                    inviteCode: INVITE_CODE,
+                    pairPassword: PAIR_PASSWORD,
+                    githubToken: githubToken,
+                    gistId: gistId,
+                    admin: {
+                        deviceId: null,
+                        name: FIXED_NAMES.admin,
+                        pin: null, // PIN админа не храним на устройстве друга
+                        progress: cloudState.profile?.progress || 0,
+                        status: cloudState.profile?.status || 'home'
+                    },
+                    player2: {
+                        deviceId: deviceId,
+                        name: FIXED_NAMES.player2,
+                        pin: playerPin,
+                        progress: cloudState.partner?.progress || 0,
+                        status: cloudState.partner?.status || 'home'
+                    },
+                    data: null
+                };
+            } else {
+                // Локальная пара уже существует (например, админ уже заходил) — обновляем только player2
+                pairData.githubToken = githubToken;
+                pairData.gistId = gistId;
+                pairData.player2 = {
+                    deviceId: deviceId,
+                    name: FIXED_NAMES.player2,
+                    pin: playerPin,
+                    progress: cloudState.partner?.progress || 0,
+                    status: cloudState.partner?.status || 'home'
+                };
+                // Оставляем admin как есть (с его PIN)
+            }
+            
+            // Обновляем прогресс из облака
+            if (cloudState.profile) {
+                pairData.admin.progress = cloudState.profile.progress || 0;
+                pairData.admin.status = cloudState.profile.status || 'home';
+            }
+            if (cloudState.partner) {
+                pairData.player2.progress = cloudState.partner.progress || 0;
+                pairData.player2.status = cloudState.partner.status || 'home';
+            }
+            
+            pairData.data = appState;
+            savePairToStorage();
+            
+            currentPlayer = 'player2';
+            isAuthenticated = true;
+            saveSession();
+            loadExercises();
+            return true;
+        } catch(e) {
+            alert('❌ Ошибка сети: ' + e.message);
+            return false;
+        }
     }
 
     function loginWithPin(pin) {
@@ -687,7 +781,7 @@
                     <button class="start-btn btn-primary" onclick="window.createPairAction()">Создать пару</button>
                     <div class="divider"><span>или</span></div>
                     <button class="start-btn btn-warning" onclick="window.showJoinScreen()">У меня есть код приглашения</button>
-                    <div class="hint-text">Вы — ${FIXED_NAMES.admin} (администратор)<br>Пароль пары: ${PAIR_PASSWORD}</div>
+                    <div class="hint-text">Вы — ${FIXED_NAMES.admin} (администратор)<br>Пароль пары: ${PAIR_PASSWORD}<br>⚠️ Токен должен иметь право "gist"</div>
                     <div class="version-badge" style="margin-top:20px;">v${APP_VERSION}</div>
                 </div>
             `;
@@ -768,6 +862,7 @@
                 <div class="role-badge player2">Вы присоединяетесь как: ${FIXED_NAMES.player2}</div>
                 <button class="start-btn btn-primary" onclick="window.joinAction()">Присоединиться</button>
                 <button class="start-btn" onclick="window.render()" style="background:transparent; border-color:var(--text-accent); color:var(--text-accent);">← Назад</button>
+                <div class="hint-text">⚠️ Токен должен совпадать с токеном админа и иметь право "gist"</div>
                 <div class="version-badge" style="margin-top:20px;">v${APP_VERSION}</div>
             </div>
         `;
